@@ -4,7 +4,10 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 
+import nodeEditor from './lib/index'
+
 Vue.config.productionTip = false
+Vue.use(nodeEditor)
 
 /* eslint-disable no-new */
 new Vue({
