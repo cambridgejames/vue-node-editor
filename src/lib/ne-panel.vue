@@ -1,46 +1,63 @@
 <template>
   <div id="ne-panel" class="ne-panel">
+    <!--主面板-->
     <svg id="ne-main-panel" class="ne-main-panel" :width="mainPanel.width" :height="mainPanel.height"
-         :viewBox="formatScale(mainPanel.x) + ' ' + formatScale(mainPanel.y) + ' ' + formatScale(mainPanel.width) + ' ' + formatScale(mainPanel.height)"
+         :viewBox="formatScale(mainPanel.x) + ' ' + formatScale(mainPanel.y) + ' '
+              + formatScale(mainPanel.width) + ' ' + formatScale(mainPanel.height)"
          @wheel.stop.prevent="onHandleScroll"
          @contextmenu.stop.prevent=""
          @mousedown.right.stop.prevent="onRightMouseDown"
          @mousemove="onMouseMove">
-      <defs id="grid-defs">
+      <defs id="grid-defs" class="grid-defs">
         <pattern id="mn-grid" width="0.5" height="0.5" patternUnits="userSpaceOnUse">
-          <path d="M 0.5 0 L 0 0 0 0.5" fill="none" stroke="#ccc" :stroke-width="formatScale(mainPanel.scale.value >= 80 ? 1 : 0.5)"/>
+          <path d="M 0.5 0 L 0 0 0 0.5" :stroke-width="formatScale(mainPanel.scale.value >= 80 ? 1 : 0.5)"/>
         </pattern>
         <pattern id="xs-grid" width="5" height="5" patternUnits="userSpaceOnUse">
           <rect v-if="mainPanel.scale.value >= 8" width="5" height="5" fill="url(#mn-grid)"/>
-          <path d="M 5 0 L 0 0 0 5" fill="none" stroke="#ccc" :stroke-width="formatScale(mainPanel.scale.value >= 8 ? 1 : 0.5)"/>
+          <path d="M 5 0 L 0 0 0 5" :stroke-width="formatScale(mainPanel.scale.value >= 8 ? 1 : 0.5)"/>
         </pattern>
         <pattern id="sm-grid" width="50" height="50" patternUnits="userSpaceOnUse">
           <rect v-if="mainPanel.scale.value >= 0.8" width="50" height="50" fill="url(#xs-grid)"/>
-          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#ccc" :stroke-width="formatScale(mainPanel.scale.value >= 0.8 ? 1 : 0.5)"/>
+          <path d="M 50 0 L 0 0 0 50" :stroke-width="formatScale(mainPanel.scale.value >= 0.8 ? 1 : 0.5)"/>
         </pattern>
         <pattern id="md-grid" width="500" height="500" patternUnits="userSpaceOnUse">
           <rect v-if="mainPanel.scale.value >= 0.08" width="500" height="500" fill="url(#sm-grid)"/>
-          <path d="M 500 0 L 0 0 0 500" fill="none" stroke="#ccc" :stroke-width="formatScale(mainPanel.scale.value >= 0.08 ? 1 : 0.5)"/>
+          <path d="M 500 0 L 0 0 0 500" :stroke-width="formatScale(mainPanel.scale.value >= 0.08 ? 1 : 0.5)"/>
         </pattern>
         <pattern id="lg-grid" width="5000" height="5000" patternUnits="userSpaceOnUse">
           <rect v-if="mainPanel.scale.value >= 0.008" width="5000" height="5000" fill="url(#md-grid)"/>
-          <path d="M 5000 0 L 0 0 0 5000" fill="none" stroke="#ccc" :stroke-width="formatScale(mainPanel.scale.value >= 0.008 ? 1 : 0.5)"/>
+          <path d="M 5000 0 L 0 0 0 5000" :stroke-width="formatScale(mainPanel.scale.value >= 0.008 ? 1 : 0.5)"/>
         </pattern>
       </defs>
-      <g id="grid-group">
+      <!--网格和坐标系-->
+      <g id="grid-group" class="grid-group" @mousedown.left.stop="onLeftMouseDown">
         <rect :x="formatScale(mainPanel.x)" :y="formatScale(mainPanel.y)"
               :width="formatScale(mainPanel.width)" :height="formatScale(mainPanel.height)"
               :fill="'url(#' + formatGrid(mainPanel.scale.value) + ')'"/>
         <line x1="0" :y1="formatScale(mainPanel.y)" x2="0" :y2="formatScale(mainPanel.y + mainPanel.height)"
-              stroke="#999" :stroke-width="formatScale(1)"/>
+              :stroke-width="formatScale(1)" class="coordinate-axis"/>
         <line y1="0" :x1="formatScale(mainPanel.x)" y2="0" :x2="formatScale(mainPanel.x + mainPanel.width)"
-              stroke="#999" :stroke-width="formatScale(1)"/>
+              :stroke-width="formatScale(1)" class="coordinate-axis"/>
+      </g>
+      <!--节点-->
+      <g id="node-group">
+        <g v-for="item in nodes">
+          <ne-text v-if="item.name === 'ne-text'" :x="item.x" :y="item.y" :value="item.value"
+                   :scale="mainPanel.scale.value" :selected="item.selected"></ne-text>
+        </g>
+      </g>
+      <!--工具组-->
+      <g id="tool-group" class="tool-group">
+        <rect id="selection-range" class="selection-range" v-if="selection.show"
+              :stroke-width="formatScale(1.5)" :stroke-dasharray="formatScale(4) + ',' + formatScale(4)"
+              :x="selection.range.x" :y="selection.range.y"
+              :width="formatScale(selection.range.width)" :height="formatScale(selection.range.height)"></rect>
       </g>
     </svg>
     <div id="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
       <p>缩放：{{Math.ceil(mainPanel.scale.value * 100)}}%</p>
       <p>坐标：({{panelInfo.mouse.realX.toFixed(1)}}, {{panelInfo.mouse.realY.toFixed(1)}})</p>
-      <p>大小：{{mainPanel.width.toFixed(0)}} * {{mainPanel.height.toFixed(0)}}</p>
+      <p>大小：{{formatScale(mainPanel.width).toFixed(0)}} * {{formatScale(mainPanel.height).toFixed(0)}}</p>
     </div>
   </div>
 </template>
@@ -48,6 +65,12 @@
 <script>
   export default {
     name: 'ne-panel',
+    props: {
+      nodeList: {
+        type: Array,
+        required: true
+      }
+    },
     data() {
       return {
         mainPanel: {
@@ -70,7 +93,17 @@
             realX: 0,
             realY: 0
           }
-        }
+        },
+        selection: {
+          show: false,
+          range: {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+          }
+        },
+        nodes: this.nodeList
       }
     },
     methods: {
@@ -115,9 +148,43 @@
           that.panelInfo.show = false;
         }, that.panelInfo.delay);
       },
+      /**
+       * 鼠标左键事件
+       */
+      onLeftMouseDown(event) {
+        let that = this;
+        let panel = document.getElementById('ne-panel');
+        let realX = that.formatScale(that.mainPanel.x + event.offsetX);
+        let realY = that.formatScale(that.mainPanel.y + event.offsetY);
+        let xBefore = event.clientX;
+        let yBefore = event.clientY;
+        that.selection.show = true;
+        panel.onmousemove = function(event) {
+          let deltaX = event.clientX - xBefore;
+          let deltaY = event.clientY - yBefore;
+          that.selection.range.x = realX + Math.min(deltaX, 0);
+          that.selection.range.y = realY + Math.min(deltaY, 0);
+          that.selection.range.width = Math.abs(deltaX);
+          that.selection.range.height = Math.abs(deltaY);
+        };
+        panel.onmouseleave = resetFunc;
+        panel.onmouseup = resetFunc;
+        function resetFunc() {
+          panel.onmousemove = null;
+          that.selection.show = false;
+          that.selection.range.x = 0;
+          that.selection.range.y = 0;
+          that.selection.range.width = 0;
+          that.selection.range.height = 0;
+        }
+      },
+      /**
+       * 鼠标右键事件
+       */
       onRightMouseDown(event) {
         let that = this;
-        event.target.style.cursor = 'pointer';
+        let panel = document.getElementById('grid-group');
+        panel.style.cursor = 'pointer';
         let xBefore = event.clientX;
         let yBefore = event.clientY;
         event.target.onmousemove = function(event) {
@@ -126,10 +193,15 @@
           xBefore = event.clientX;
           yBefore = event.clientY;
         };
-        event.target.onmouseup = resetFunc;
         event.target.onmouseleave = resetFunc;
+        event.target.onmouseup = function() {
+          resetFunc();
+          if (event.clientX === xBefore && event.clientY === yBefore) {
+            console.log('click');
+          }
+        };
         function resetFunc() {
-          event.target.style.cursor = 'default';
+          panel.style.cursor = 'inherit';
           event.target.onmousemove = null;
         }
       },
@@ -188,6 +260,8 @@
 </script>
 
 <style lang="scss" scoped>
+  @import './scss/base.scss';
+
   .ne-panel {
     width: 100%;
     height: 100%;
@@ -197,6 +271,28 @@
     .ne-main-panel {
       width: 100%;
       height: 100%;
+
+      .grid-defs {
+        path {
+          fill: none;
+          stroke: $grid-stroke-color;
+          stroke-opacity: 0.4;
+        }
+      }
+
+      .grid-group {
+        .coordinate-axis {
+          stroke: $grid-stroke-color;
+          stroke-opacity: 0.4;
+        }
+      }
+
+      .tool-group {
+        .selection-range {
+          fill: none;
+          stroke: $selection-box-color;
+        }
+      }
     }
 
     .ne-panel-info {
