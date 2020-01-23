@@ -10,7 +10,8 @@
       <g ref="text-output-group" class="output-group">
         <text ref="text-output-text" class="output-text" :x="mainPanel.width - 20" y="16">值</text>
         <circle ref="output-point" class="output-point" :cx="mainPanel.width - 10" cy="12" r="4"
-                @mousedown.left.stop.prevent="onConnectionStart"></circle>
+                @mousedown.left.stop.prevent="onConnectionStart"
+                @mouseup.left.stop.prevent="onConnectionEnd"></circle>
       </g>
       <g ref="text-input-group" class="input-group text-input-group">
         <foreignObject ref="text-input-box" class="text-input-box" :width="mainPanel.width" height="24">
@@ -45,6 +46,7 @@
       },
       selected: {
         type: Boolean,
+        default: false,
         required: true
       }
     },
@@ -75,13 +77,19 @@
         this.$emit('value', this.input.value);
       },
       onLeftMouseDown(event) {
-        this.$emit('onmovenode', event);
+        this.$emit('movenode', event);
       },
       onConnectionStart() {
-        this.$emit('onconnectionstart', {
+        this.$emit('connectionstart', {
           x: this.mainPanel.x + this.mainPanel.width - 10,
           y: this.mainPanel.y + 36
         }, true);
+      },
+      onConnectionEnd() {
+        this.$emit('connectionend', {
+          x: this.mainPanel.x + this.mainPanel.width - 10,
+          y: this.mainPanel.y + 36
+        }, false);
       },
       formatScale(number) {
         return number / this.mainPanel.scale;

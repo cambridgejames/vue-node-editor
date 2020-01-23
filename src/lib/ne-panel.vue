@@ -45,16 +45,25 @@
         <g v-for="(item, index) in panelInfo.content.nodeList">
           <ne-text v-if="item.name === 'ne-text'" :x="item.x" :y="item.y"
                    :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                   @onmovenode.stop="(event) => onMoveNode(index, event)"
-                   @onconnectionstart="onConnectionStart"></ne-text>
+                   @movenode.stop="(event) => onMoveNode(index, event)"
+                   @connectionstart="onConnectionStart"
+                   @connectionend="onConnectionEnd"></ne-text>
+          <ne-output v-if="item.name === 'ne-output'" :x="item.x" :y="item.y"
+                     :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                     @movenode.stop="(event) => onMoveNode(index, event)"
+                     @connectionstart="onConnectionStart"
+                     @connectionend="onConnectionEnd"></ne-output>
         </g>
+      </g>
+      <g ref="connection-group" class="connection-group">
+        <path ref="connection-line" class="connection-line" v-for="item in panelInfo.content.connection"
+              :d="formatConnection(item.range, true)"></path>
       </g>
       <!--工具组-->
       <g ref="tool-group" class="tool-group">
         <rect ref="selection-range" class="selection-range" v-if="selection.show"
               :stroke-width="formatScale(1.5)" :stroke-dasharray="formatScale(4) + ',' + formatScale(4)"
-              :x="selection.range.x" :y="selection.range.y"
-              :width="formatScale(selection.range.width)" :height="formatScale(selection.range.height)"></rect>
+              :x="selection.range.x" :y="selection.range.y" :width="selection.range.width" :height="selection.range.height"></rect>
         <path ref="connection-line" class="connection-line" v-if="connection.show"
               :d="formatConnection(connection.range, connection.isOutput)"></path>
       </g>
@@ -76,7 +85,7 @@
         required: true,
         nodeList: [],
         connection: [],
-        output: []
+        outputList: []
       }
     },
     data() {
@@ -156,7 +165,7 @@
         that.onPageInfoShow();
       },
       /**
-       * 鼠标左键事件
+       * 背景面板上的鼠标左键事件，包括左键单击和框选
        */
       onLeftMouseDown(event) {
         let that = this;
@@ -171,13 +180,21 @@
           let deltaY = event.clientY - yBefore;
           that.selection.range.x = realX + Math.min(deltaX, 0);
           that.selection.range.y = realY + Math.min(deltaY, 0);
-          that.selection.range.width = Math.abs(deltaX);
-          that.selection.range.height = Math.abs(deltaY);
+          that.selection.range.width = that.formatScale(Math.abs(deltaX));
+          that.selection.range.height = that.formatScale(Math.abs(deltaY));
         };
         panel.onmouseleave = resetFunc;
-        panel.onmouseup = resetFunc;
+        panel.onmouseup = function(ev) {
+          if (that.selection.range.width === 0 && that.selection.range.height === 0) {
+            that.onLeftClick(ev);
+          } else {
+            that.onFrameSelection();
+          }
+          resetFunc();
+        };
         function resetFunc() {
           panel.onmousemove = null;
+          panel.onmouseup = null;
           that.selection.show = false;
           that.selection.range.x = 0;
           that.selection.range.y = 0;
@@ -200,59 +217,115 @@
         panel.onmouseup = resetFunc;
         function resetFunc() {
           panel.onmousemove = null;
+          panel.onmouseup = null;
           that.connection.show = false;
+          that.connection.range.x0 = 0;
+          that.connection.range.y0 = 0;
           that.connection.range.x1 = 0;
           that.connection.range.y1 = 0;
-          that.connection.range.x2 = 0;
-          that.connection.range.y2 = 0;
         }
+      },
+      onConnectionEnd(endPoint, isEndInput) {
+        let that = this;
+        let panel = this.$refs['ne-panel'];
+        panel.onmousemove = null;
+        panel.onmouseup = null;
+        if (isEndInput === that.connection.isOutput) {
+          if (isEndInput) {
+            that.panelInfo.content.connection.push({range: {
+              x0: that.connection.range.x0,
+              y0: that.connection.range.y0,
+              x1: endPoint.x,
+              y1: endPoint.y
+            }});
+          } else {
+            that.panelInfo.content.connection.push({range: {
+                x0: endPoint.x,
+                y0: endPoint.y,
+                x1: that.connection.range.x0,
+                y1: that.connection.range.y0
+              }});
+          }
+        }
+        that.connection.show = false;
+        that.connection.range.x0 = 0;
+        that.connection.range.y0 = 0;
+        that.connection.range.x1 = 0;
+        that.connection.range.y1 = 0;
       },
       onMoveNode(index, event) {
         let that = this;
         let panel = this.$refs['ne-panel'];
         let node = that.panelInfo.content.nodeList[index];
-        panel.style.cursor = 'pointer';
         let xBefore = event.clientX;
         let yBefore = event.clientY;
+        panel.style.cursor = 'pointer';
         panel.onmousemove = function(event) {
           node.x += (event.clientX - xBefore) / that.mainPanel.scale.value;
           node.y += (event.clientY - yBefore) / that.mainPanel.scale.value;
           xBefore = event.clientX;
           yBefore = event.clientY;
         };
-        panel.onmouseup = resetFunc;
         panel.onmouseleave = resetFunc;
+        panel.onmouseup = function(ev) {
+          resetFunc();
+          if (event.clientX === xBefore && event.clientY === yBefore) {
+            that.onLeftClick(ev, node);
+          }
+        }
         function resetFunc() {
           panel.style.cursor = 'inherit';
           panel.onmousemove = null;
+          panel.onmouseup = null;
         }
       },
       /**
-       * 鼠标右键事件
+       * 鼠标右键事件，包括右键单击和拖拽画布
        */
       onRightMouseDown(event) {
         let that = this;
-        let panel = this.$refs['grid-group'];
-        panel.style.cursor = 'pointer';
+        let panel = this.$refs['ne-panel'];
         let xBefore = event.clientX;
         let yBefore = event.clientY;
-        event.target.onmousemove = function(event) {
+        panel.style.cursor = 'pointer';
+        panel.onmousemove = function(event) {
           that.mainPanel.x -= event.clientX - xBefore;
           that.mainPanel.y -= event.clientY - yBefore;
           xBefore = event.clientX;
           yBefore = event.clientY;
         };
-        event.target.onmouseleave = resetFunc;
-        event.target.onmouseup = function() {
+        panel.onmouseleave = resetFunc;
+        panel.onmouseup = function(ev) {
           resetFunc();
           if (event.clientX === xBefore && event.clientY === yBefore) {
-            console.log('click');
+            that.onRightClick(ev);
           }
         };
         function resetFunc() {
           panel.style.cursor = 'inherit';
-          event.target.onmousemove = null;
+          panel.onmousemove = null;
+          panel.onmouseup = null;
         }
+      },
+      /**
+       * 鼠标左键单击事件
+       */
+      onLeftClick(event, node) {
+        console.log('left click on ' + (node ? 'node' : 'panel'));
+      },
+      /**
+       * 鼠标右键单击事件
+       */
+      onRightClick(event) {
+        console.log('right click');
+      },
+      /**
+       * 鼠标左键框选事件
+       */
+      onFrameSelection() {
+        let that = this;
+        console.log('selection range: [' + [that.selection.range.x, that.selection.range.y,
+          that.selection.range.width, that.selection.range.height].join(", ") + "]");
       },
       /**
        * 元素大小发生改变时触发
@@ -267,6 +340,9 @@
         // 显示画布大小
         that.onPageInfoShow();
       },
+      /**
+       * 显示右上角的组件信息
+       */
       onPageInfoShow() {
         let that = this;
         that.panelInfo.show = true;
@@ -299,6 +375,12 @@
           return '';
         }
       },
+      /**
+       * 根据坐标和起始点信息绘制节点间的联结三次贝塞尔曲线
+       * @param pathPoint 起始点和终点坐标及控制点位置设置
+       * @param isStartOutput 线型（起始点是否是输出点）
+       * @returns {string} 三次贝塞尔曲线的path路径
+       */
       formatConnection(pathPoint, isStartOutput) {
         let that = this;
         let outputRatio = isStartOutput ? 1 : -1;
@@ -346,6 +428,15 @@
         .coordinate-axis {
           stroke: $grid-stroke-color;
           stroke-opacity: 0.4;
+        }
+      }
+
+      .connection-group {
+        .connection-line {
+          fill: none;
+          stroke: black;
+          stroke-width: 1.5;
+          stroke-linecap: round;
         }
       }
 

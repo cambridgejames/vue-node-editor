@@ -13,11 +13,13 @@ export default {
       msg: 'node-editor节点编辑器测试',
       init: {
         nodeList: [
-          {name: 'ne-text', x: -300, y: -200, selected: false, value: '节点1'},
-          {name: 'ne-text', x: -300, y: -50, selected: false}
+          {name: 'ne-text', x: -300, y: -200, value: '节点1'},
+          {name: 'ne-text', x: -300, y: -50},
+          {name: 'ne-output', x: 200, y: -250, value: 'StringA'},
+          {name: 'ne-output', x: 200, y: -100, value: 'StringB'},
+          {name: 'ne-output', x: 200, y: 50, value: 'StringC'}
         ],
-        connection: '',
-        output1: ['stringA', 'stringB']
+        connection: []
       }
     }
   }

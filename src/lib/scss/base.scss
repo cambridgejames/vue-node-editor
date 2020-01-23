@@ -2,6 +2,7 @@ $grid-stroke-color: #003366;
 $selection-box-color: #ff4f81;
 
 $input-node-background: #2dde98;
+$output-node-background: #ff4f81;
 
 $selected-node-border: #3369e7;
 
@@ -57,5 +58,23 @@ $selected-node-border: #3369e7;
 
   .input-group {
     transform: translate(0, 48px);
+
+    .input-text {
+      font-size: 12px;
+      fill: black;
+      text-anchor: start;
+    }
+
+    .input-point {
+      fill: #003366;
+      stroke: #3369e7;
+      stroke-width: 1;
+
+      &:hover {
+        stroke: white;
+        stroke-width: 1.5;
+        cursor: pointer;
+      }
+    }
   }
 }
