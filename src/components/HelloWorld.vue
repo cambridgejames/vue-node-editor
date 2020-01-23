@@ -1,7 +1,7 @@
 <template>
   <div class="test-main-container">
     <div class="test-title">{{msg}}</div>
-    <ne-panel class="test-panel" :node-list="nodeList"></ne-panel>
+    <ne-panel class="test-panel" :init="init"></ne-panel>
   </div>
 </template>
 
@@ -11,10 +11,14 @@ export default {
   data () {
     return {
       msg: 'node-editor节点编辑器测试',
-      nodeList: [
-        {name: 'ne-text', x: 0, y: 0, selected: false, value: '节点1'},
-        {name: 'ne-text', x: 200, y: 0, selected: false}
-      ]
+      init: {
+        nodeList: [
+          {name: 'ne-text', x: -300, y: -200, selected: false, value: '节点1'},
+          {name: 'ne-text', x: -300, y: -50, selected: false}
+        ],
+        connection: '',
+        output1: ['stringA', 'stringB']
+      }
     }
   }
 }

@@ -8,16 +8,14 @@
         <text ref="text-title-text" class="title-text" :x="mainPanel.width / 2" y="16">文字输入</text>
       </g>
       <g ref="text-output-group" class="output-group">
-        <text ref="text-output-text" class="output-text" :x="mainPanel.width - 20" y="16"
-              @mousedown.left.stop.prevent="">值</text>
+        <text ref="text-output-text" class="output-text" :x="mainPanel.width - 20" y="16">值</text>
         <circle ref="output-point" class="output-point" :cx="mainPanel.width - 10" cy="12" r="4"
-                @mousedown.left.stop.prevent=""></circle>
+                @mousedown.left.stop.prevent="onConnectionStart"></circle>
       </g>
       <g ref="text-input-group" class="input-group text-input-group">
         <foreignObject ref="text-input-box" class="text-input-box" :width="mainPanel.width" height="24">
           <label>
-            <input ref="text-input-control" class="text-input-control" type="text" placeholder="请输入文字"
-                   v-model="input.value"
+            <input ref="text-input-control" class="text-input-control" type="text" placeholder="请输入文字" v-model="input.value"
                    @input="onChangeValue"/>
           </label>
         </foreignObject>
@@ -52,6 +50,8 @@
     },
     watch: {
       value(newVal) { this.input.value = newVal; },
+      x(newVal) { this.mainPanel.x = newVal; },
+      y(newVal) { this.mainPanel.y = newVal; },
       scale(newVal) { this.mainPanel.scale = newVal; },
       selected(newVal) { this.mainPanel.selected = newVal; }
     },
@@ -72,29 +72,17 @@
     },
     methods: {
       onChangeValue() {
-        let that = this;
-        that.$emit('value', that.input.value);
+        this.$emit('value', this.input.value);
       },
       onLeftMouseDown(event) {
-        let that = this;
-        let panel = that.$refs['ne-text'];
-        that.$refs['text-title-group'].style.cursor = 'pointer';
-        let xBefore = event.clientX;
-        let yBefore = event.clientY;
-        panel.onmousemove = function(event) {
-          that.mainPanel.x += (event.clientX - xBefore) / that.mainPanel.scale;
-          that.mainPanel.y += (event.clientY - yBefore) / that.mainPanel.scale;
-          xBefore = event.clientX;
-          yBefore = event.clientY;
-        };
-        document.onmouseup = function() {
-          that.$refs['text-title-group'].style.cursor = 'inherit';
-          panel.onmousemove = null;
-        };
+        this.$emit('onmovenode', event);
       },
-      /**
-       * 数值转换方法，在缩放坐标的同时保证保证线宽、尺寸等值不变
-       */
+      onConnectionStart() {
+        this.$emit('onconnectionstart', {
+          x: this.mainPanel.x + this.mainPanel.width - 10,
+          y: this.mainPanel.y + 36
+        }, true);
+      },
       formatScale(number) {
         return number / this.mainPanel.scale;
       }

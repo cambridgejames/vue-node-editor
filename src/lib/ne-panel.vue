@@ -1,14 +1,14 @@
 <template>
-  <div id="ne-panel" class="ne-panel">
+  <div ref="ne-panel" class="ne-panel">
     <!--主面板-->
-    <svg id="ne-main-panel" class="ne-main-panel" :width="mainPanel.width" :height="mainPanel.height"
+    <svg ref="ne-main-panel" class="ne-main-panel" :width="mainPanel.width" :height="mainPanel.height"
          :viewBox="formatScale(mainPanel.x) + ' ' + formatScale(mainPanel.y) + ' '
               + formatScale(mainPanel.width) + ' ' + formatScale(mainPanel.height)"
          @wheel.stop.prevent="onHandleScroll"
          @contextmenu.stop.prevent=""
          @mousedown.right.stop.prevent="onRightMouseDown"
          @mousemove="onMouseMove">
-      <defs id="grid-defs" class="grid-defs">
+      <defs ref="grid-defs" class="grid-defs">
         <pattern id="mn-grid" width="0.5" height="0.5" patternUnits="userSpaceOnUse">
           <path d="M 0.5 0 L 0 0 0 0.5" :stroke-width="formatScale(mainPanel.scale.value >= 80 ? 1 : 0.5)"/>
         </pattern>
@@ -30,7 +30,8 @@
         </pattern>
       </defs>
       <!--网格和坐标系-->
-      <g id="grid-group" class="grid-group" @mousedown.left.stop="onLeftMouseDown">
+      <g ref="grid-group" class="grid-group"
+         @mousedown.left.stop="onLeftMouseDown">
         <rect :x="formatScale(mainPanel.x)" :y="formatScale(mainPanel.y)"
               :width="formatScale(mainPanel.width)" :height="formatScale(mainPanel.height)"
               :fill="'url(#' + formatGrid(mainPanel.scale.value) + ')'"/>
@@ -40,21 +41,25 @@
               :stroke-width="formatScale(1)" class="coordinate-axis"/>
       </g>
       <!--节点-->
-      <g id="node-group">
-        <g v-for="item in nodes">
-          <ne-text v-if="item.name === 'ne-text'" :x="item.x" :y="item.y" :value="item.value"
-                   :scale="mainPanel.scale.value" :selected="item.selected"></ne-text>
+      <g ref="node-group">
+        <g v-for="(item, index) in panelInfo.content.nodeList">
+          <ne-text v-if="item.name === 'ne-text'" :x="item.x" :y="item.y"
+                   :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                   @onmovenode.stop="(event) => onMoveNode(index, event)"
+                   @onconnectionstart="onConnectionStart"></ne-text>
         </g>
       </g>
       <!--工具组-->
-      <g id="tool-group" class="tool-group">
-        <rect id="selection-range" class="selection-range" v-if="selection.show"
+      <g ref="tool-group" class="tool-group">
+        <rect ref="selection-range" class="selection-range" v-if="selection.show"
               :stroke-width="formatScale(1.5)" :stroke-dasharray="formatScale(4) + ',' + formatScale(4)"
               :x="selection.range.x" :y="selection.range.y"
               :width="formatScale(selection.range.width)" :height="formatScale(selection.range.height)"></rect>
+        <path ref="connection-line" class="connection-line" v-if="connection.show"
+              :d="formatConnection(connection.range, connection.isOutput)"></path>
       </g>
     </svg>
-    <div id="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
+    <div ref="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
       <p>缩放：{{Math.ceil(mainPanel.scale.value * 100)}}%</p>
       <p>坐标：({{panelInfo.mouse.realX.toFixed(1)}}, {{panelInfo.mouse.realY.toFixed(1)}})</p>
       <p>大小：{{formatScale(mainPanel.width).toFixed(0)}} * {{formatScale(mainPanel.height).toFixed(0)}}</p>
@@ -66,9 +71,12 @@
   export default {
     name: 'ne-panel',
     props: {
-      nodeList: {
-        type: Array,
-        required: true
+      init: {
+        type: Object,
+        required: true,
+        nodeList: [],
+        connection: [],
+        output: []
       }
     },
     data() {
@@ -92,7 +100,8 @@
           mouse: {
             realX: 0,
             realY: 0
-          }
+          },
+          content: this.init
         },
         selection: {
           show: false,
@@ -103,7 +112,17 @@
             height: 0
           }
         },
-        nodes: this.nodeList
+        connection: {
+          show: false,
+          isOutput: true,
+          range: {
+            x0: 0,
+            y0: 0,
+            x1: 0,
+            y1: 0
+          },
+          minOffset: 50
+        }
       }
     },
     methods: {
@@ -115,13 +134,7 @@
         that.panelInfo.mouse.realX = that.formatScale(that.mainPanel.x + event.offsetX);
         that.panelInfo.mouse.realY = that.formatScale(that.mainPanel.y + event.offsetY);
         // 显示鼠标坐标
-        that.panelInfo.show = true;
-        if(that.panelInfo.timer !== null) {
-          clearTimeout(that.panelInfo.timer);
-        }
-        that.panelInfo.timer = setTimeout(function () {
-          that.panelInfo.show = false;
-        }, that.panelInfo.delay);
+        that.onPageInfoShow();
       },
       /**
        * 鼠标滚轮响应方法，对画布进行缩放
@@ -140,20 +153,14 @@
         that.mainPanel.y -= realY * scale.speed * scale.value * (event.deltaY > 0 ? 1 : -1);
         scale.value = scaleCache;
         // 显示缩放倍数
-        that.panelInfo.show = true;
-        if(that.panelInfo.timer !== null) {
-          clearTimeout(that.panelInfo.timer);
-        }
-        that.panelInfo.timer = setTimeout(function () {
-          that.panelInfo.show = false;
-        }, that.panelInfo.delay);
+        that.onPageInfoShow();
       },
       /**
        * 鼠标左键事件
        */
       onLeftMouseDown(event) {
         let that = this;
-        let panel = document.getElementById('ne-panel');
+        let panel = this.$refs['ne-panel'];
         let realX = that.formatScale(that.mainPanel.x + event.offsetX);
         let realY = that.formatScale(that.mainPanel.y + event.offsetY);
         let xBefore = event.clientX;
@@ -178,12 +185,54 @@
           that.selection.range.height = 0;
         }
       },
+      onConnectionStart(startPoint, isStartOutput) {
+        let that = this;
+        let panel = this.$refs['ne-panel'];
+        that.connection.range.x0 = startPoint.x;
+        that.connection.range.y0 = startPoint.y;
+        that.connection.isOutput = isStartOutput;
+        panel.onmousemove = function(event) {
+          that.connection.range.x1 = that.formatScale(that.mainPanel.x + event.offsetX);
+          that.connection.range.y1 = that.formatScale(that.mainPanel.y + event.offsetY);
+          that.connection.show = true;
+        };
+        panel.onmouseleave = resetFunc;
+        panel.onmouseup = resetFunc;
+        function resetFunc() {
+          panel.onmousemove = null;
+          that.connection.show = false;
+          that.connection.range.x1 = 0;
+          that.connection.range.y1 = 0;
+          that.connection.range.x2 = 0;
+          that.connection.range.y2 = 0;
+        }
+      },
+      onMoveNode(index, event) {
+        let that = this;
+        let panel = this.$refs['ne-panel'];
+        let node = that.panelInfo.content.nodeList[index];
+        panel.style.cursor = 'pointer';
+        let xBefore = event.clientX;
+        let yBefore = event.clientY;
+        panel.onmousemove = function(event) {
+          node.x += (event.clientX - xBefore) / that.mainPanel.scale.value;
+          node.y += (event.clientY - yBefore) / that.mainPanel.scale.value;
+          xBefore = event.clientX;
+          yBefore = event.clientY;
+        };
+        panel.onmouseup = resetFunc;
+        panel.onmouseleave = resetFunc;
+        function resetFunc() {
+          panel.style.cursor = 'inherit';
+          panel.onmousemove = null;
+        }
+      },
       /**
        * 鼠标右键事件
        */
       onRightMouseDown(event) {
         let that = this;
-        let panel = document.getElementById('grid-group');
+        let panel = this.$refs['grid-group'];
         panel.style.cursor = 'pointer';
         let xBefore = event.clientX;
         let yBefore = event.clientY;
@@ -210,12 +259,16 @@
        */
       onResize() {
         let that = this;
-        let container = document.getElementById("ne-panel");
+        let container = this.$refs["ne-panel"];
         that.mainPanel.x -= (container.offsetWidth - that.mainPanel.width) / 2;
         that.mainPanel.y -= (container.offsetHeight - that.mainPanel.height) / 2;
         that.mainPanel.width = container.offsetWidth;
         that.mainPanel.height = container.offsetHeight;
         // 显示画布大小
+        that.onPageInfoShow();
+      },
+      onPageInfoShow() {
+        let that = this;
         that.panelInfo.show = true;
         if(that.panelInfo.timer !== null) {
           clearTimeout(that.panelInfo.timer);
@@ -245,11 +298,20 @@
         } else {
           return '';
         }
+      },
+      formatConnection(pathPoint, isStartOutput) {
+        let that = this;
+        let outputRatio = isStartOutput ? 1 : -1;
+        let offset = Math.max((pathPoint.x1 - pathPoint.x0) * outputRatio / 2, that.connection.minOffset);
+        let x2 = pathPoint.x0 + outputRatio * offset;
+        let x3 = pathPoint.x1 - outputRatio * offset;
+        let mixArray = ['M', pathPoint.x0, pathPoint.y0, 'C', x2, pathPoint.y0, x3, pathPoint.y1, pathPoint.x1, pathPoint.y1];
+        return mixArray.join(" ");
       }
     },
     mounted () {
       // 对画布尺寸进行初始化，绑定事件监听方法
-      let container = document.getElementById("ne-panel");
+      let container = this.$refs["ne-panel"];
       this.mainPanel.width = container.offsetWidth;
       this.mainPanel.height = container.offsetHeight;
       this.mainPanel.x = -container.offsetWidth / 2;
@@ -292,10 +354,21 @@
           fill: none;
           stroke: $selection-box-color;
         }
+
+        .connection-line {
+          fill: none;
+          stroke: black;
+          stroke-width: 1.5;
+          stroke-linecap: round;
+        }
       }
     }
 
     .ne-panel-info {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       position: absolute;
       right: 10px;
       top: 10px;

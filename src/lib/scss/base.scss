@@ -6,7 +6,10 @@ $input-node-background: #2dde98;
 $selected-node-border: #3369e7;
 
 .ne-node {
-  cursor: default;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 
   .main-container {
     stroke: black;
@@ -19,7 +22,6 @@ $selected-node-border: #3369e7;
   }
 
   .title-group {
-    cursor: default;
     .title-back {
       height: 24px;
       fill: rgba(black, 0.5);
