@@ -45,13 +45,13 @@
         <g v-for="(item, index) in panelInfo.content.nodeList" :key="index">
           <ne-text v-if="item.name === 'ne-text'" :n-id="item.nId" :x="item.x" :y="item.y"
                    :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                   :ref="'node-group' + item.nId"
+                   :ref="'node-group-item-' + item.nId"
                    @movenode.stop="(event) => onMoveNode(index, event)"
                    @connectionstart="onConnectionStart"
                    @connectionend="onConnectionEnd"></ne-text>
           <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
                      :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                     :ref="'node-group' + item.nId"
+                     :ref="'node-group-item-' + item.nId"
                      @movenode.stop="(event) => onMoveNode(index, event)"
                      @connectionstart="onConnectionStart"
                      @connectionend="onConnectionEnd"></ne-output>
@@ -127,10 +127,11 @@
           show: false,
           isOutput: true,
           range: {
-            x0: 0,
-            y0: 0,
-            x1: 0,
-            y1: 0
+            p0: '',
+            p1: {
+              x: 0,
+              y: 0
+            }
           },
           minOffset: 50
         }
@@ -207,13 +208,11 @@
       onConnectionStart(startPointNId, isStartOutput) {
         let that = this;
         let panel = this.$refs['ne-panel'];
-        let startPoint = that.getPointPositionByNId(startPointNId);
-        that.connection.range.x0 = startPoint.x;
-        that.connection.range.y0 = startPoint.y;
+        that.connection.range.p0 = startPointNId;
         that.connection.isOutput = isStartOutput;
         panel.onmousemove = function(event) {
-          that.connection.range.x1 = that.formatScale(that.mainPanel.x + event.offsetX);
-          that.connection.range.y1 = that.formatScale(that.mainPanel.y + event.offsetY);
+          that.connection.range.p1.x = that.formatScale(that.mainPanel.x + event.offsetX);
+          that.connection.range.p1.y = that.formatScale(that.mainPanel.y + event.offsetY);
           that.connection.show = true;
         };
         panel.onmouseleave = resetFunc;
@@ -222,10 +221,8 @@
           panel.onmousemove = null;
           panel.onmouseup = null;
           that.connection.show = false;
-          that.connection.range.x0 = 0;
-          that.connection.range.y0 = 0;
-          that.connection.range.x1 = 0;
-          that.connection.range.y1 = 0;
+          that.connection.range.p1.x = 0;
+          that.connection.range.p1.y = 0;
         }
       },
       onConnectionEnd(endPointNId, isEndInput) {
@@ -233,29 +230,22 @@
         let panel = this.$refs['ne-panel'];
         panel.onmousemove = null;
         panel.onmouseup = null;
-        let endPoint = that.getPointPositionByNId(endPointNId);
         if (isEndInput === that.connection.isOutput) {
           if (isEndInput) {
             that.panelInfo.content.connection.push({range: {
-              x0: that.connection.range.x0,
-              y0: that.connection.range.y0,
-              x1: endPoint.x,
-              y1: endPoint.y
+              p0: that.connection.range.p0,
+              p1: endPointNId
             }});
           } else {
             that.panelInfo.content.connection.push({range: {
-                x0: endPoint.x,
-                y0: endPoint.y,
-                x1: that.connection.range.x0,
-                y1: that.connection.range.y0
-              }});
+              p0: endPointNId,
+              p1: that.connection.range.p0
+            }});
           }
         }
         that.connection.show = false;
-        that.connection.range.x0 = 0;
-        that.connection.range.y0 = 0;
-        that.connection.range.x1 = 0;
-        that.connection.range.y1 = 0;
+        that.connection.range.p1.x = 0;
+        that.connection.range.p1.y = 0;
       },
       onMoveNode(index, event) {
         let that = this;
@@ -359,9 +349,13 @@
       },
       getPointPositionByNId(pointNId) {
         let that = this;
-        let pointNIdArray = pointNId.split('#');
-        let neNode = that.$refs['node-group' + pointNIdArray[0]][0];
-        return neNode.getPointPosition(pointNIdArray[1]);
+        if(typeof pointNId === 'string') {
+          let pointNIdArray = pointNId.split('#');
+          let neNode = that.$refs['node-group-item-' + pointNIdArray[0]][0];
+          return neNode.getPointPosition(pointNIdArray[1]);
+        } else {
+          return pointNId;
+        }
       },
       /**
        * 数值转换方法，在缩放坐标的同时保证保证线宽、尺寸等值不变
@@ -394,10 +388,15 @@
       formatConnection(pathPoint, isStartOutput) {
         let that = this;
         let outputRatio = isStartOutput ? 1 : -1;
-        let offset = Math.max((pathPoint.x1 - pathPoint.x0) * outputRatio / 2, that.connection.minOffset);
-        let x2 = pathPoint.x0 + outputRatio * offset;
-        let x3 = pathPoint.x1 - outputRatio * offset;
-        let mixArray = ['M', pathPoint.x0, pathPoint.y0, 'C', x2, pathPoint.y0, x3, pathPoint.y1, pathPoint.x1, pathPoint.y1];
+        let pathPointNew = {
+          p0: that.getPointPositionByNId(pathPoint.p0),
+          p1: that.getPointPositionByNId(pathPoint.p1)
+        };
+        let offset = Math.max((pathPointNew.p1.x - pathPointNew.p0.x) * outputRatio / 2, that.connection.minOffset);
+        let x2 = pathPointNew.p0.x + outputRatio * offset;
+        let x3 = pathPointNew.p1.x - outputRatio * offset;
+        let mixArray = ['M', pathPointNew.p0.x, pathPointNew.p0.y,
+          'C', x2, pathPointNew.p0.y, x3, pathPointNew.p1.y, pathPointNew.p1.x, pathPointNew.p1.y];
         return mixArray.join(" ");
       }
     },
