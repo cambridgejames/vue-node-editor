@@ -9,9 +9,9 @@
       </g>
       <g ref="text-output-group" class="output-group">
         <text ref="text-output-text" class="output-text" :x="mainPanel.width - 20" y="16">值</text>
-        <circle ref="output-point" class="output-point" :cx="mainPanel.width - 10" cy="12" r="4"
-                @mousedown.left.stop.prevent="onConnectionStart"
-                @mouseup.left.stop.prevent="onConnectionEnd"></circle>
+        <circle ref="output-point" class="output-point" :cx="mainPanel.width - 10" cy="12" r="4" n-id="o0"
+                @mousedown.left.stop.prevent="onConnectionStart('o0')"
+                @mouseup.left.stop.prevent="onConnectionEnd('o0')"></circle>
       </g>
       <g ref="text-input-group" class="input-group text-input-group">
         <foreignObject ref="text-input-box" class="text-input-box" :width="mainPanel.width" height="24">
@@ -28,6 +28,10 @@
   export default {
     name: 'ne-text',
     props: {
+      nId: {
+        type: String,
+        required: true
+      },
       x: {
         type: Number,
         required: true
@@ -79,17 +83,21 @@
       onLeftMouseDown(event) {
         this.$emit('movenode', event);
       },
-      onConnectionStart() {
-        this.$emit('connectionstart', {
-          x: this.mainPanel.x + this.mainPanel.width - 10,
-          y: this.mainPanel.y + 36
-        }, true);
+      onConnectionStart(pointNId) {
+        this.$emit('connectionstart', this.nId + '#' + pointNId, true);
       },
-      onConnectionEnd() {
-        this.$emit('connectionend', {
-          x: this.mainPanel.x + this.mainPanel.width - 10,
-          y: this.mainPanel.y + 36
-        }, false);
+      onConnectionEnd(pointNId) {
+        this.$emit('connectionend', this.nId + '#' + pointNId, false);
+      },
+      getPointPosition(pointNId) {
+        if(pointNId === 'o0') {
+          return {
+            x: this.mainPanel.x + this.mainPanel.width - 10,
+            y: this.mainPanel.y + 36
+          };
+        } else {
+          return null;
+        }
       },
       formatScale(number) {
         return number / this.mainPanel.scale;

@@ -9,9 +9,9 @@
     </g>
     <g ref="output-input-group" class="input-group output-input-group">
       <text ref="output-input-text" class="input-text" x="20" y="16">{{mainPanel.value}}</text>
-      <circle ref="input-point" class="input-point" cx="10" cy="12" r="4"
-              @mousedown.left.stop.prevent="onConnectionStart"
-              @mouseup.left.stop.prevent="onConnectionEnd"></circle>
+      <circle ref="input-point" class="input-point" cx="10" cy="12" r="4" n-id="i0"
+              @mousedown.left.stop.prevent="onConnectionStart('i0')"
+              @mouseup.left.stop.prevent="onConnectionEnd('i0')"></circle>
     </g>
   </g>
 </template>
@@ -20,6 +20,10 @@
   export default {
     name: 'ne-output',
     props: {
+      nId: {
+        type: String,
+        required: true
+      },
       x: {
         type: Number,
         required: true
@@ -69,17 +73,21 @@
       onLeftMouseDown(event) {
         this.$emit('movenode', event);
       },
-      onConnectionStart() {
-        this.$emit('connectionstart', {
-          x: this.mainPanel.x + 10,
-          y: this.mainPanel.y + 36
-        }, false);
+      onConnectionStart(pointNId) {
+        this.$emit('connectionstart', this.nId + '#' + pointNId, false);
       },
-      onConnectionEnd() {
-        this.$emit('connectionend', {
-          x: this.mainPanel.x + 10,
-          y: this.mainPanel.y + 36
-        }, true);
+      onConnectionEnd(pointNId) {
+        this.$emit('connectionend', this.nId + '#' + pointNId, true);
+      },
+      getPointPosition(pointNId) {
+        if(pointNId === 'i0') {
+          return {
+            x: this.mainPanel.x + 10,
+            y: this.mainPanel.y + 36
+          };
+        } else {
+          return null;
+        }
       },
       formatScale(number) {
         return number / this.mainPanel.scale;

@@ -42,19 +42,22 @@
       </g>
       <!--节点-->
       <g ref="node-group">
-        <g v-for="(item, index) in panelInfo.content.nodeList">
-          <ne-text v-if="item.name === 'ne-text'" :x="item.x" :y="item.y"
+        <g v-for="(item, index) in panelInfo.content.nodeList" :key="index">
+          <ne-text v-if="item.name === 'ne-text'" :n-id="item.nId" :x="item.x" :y="item.y"
                    :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                   :ref="'node-group' + item.nId"
                    @movenode.stop="(event) => onMoveNode(index, event)"
                    @connectionstart="onConnectionStart"
                    @connectionend="onConnectionEnd"></ne-text>
-          <ne-output v-if="item.name === 'ne-output'" :x="item.x" :y="item.y"
+          <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
                      :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                     :ref="'node-group' + item.nId"
                      @movenode.stop="(event) => onMoveNode(index, event)"
                      @connectionstart="onConnectionStart"
                      @connectionend="onConnectionEnd"></ne-output>
         </g>
       </g>
+      <!--节点间连线-->
       <g ref="connection-group" class="connection-group">
         <path ref="connection-line" class="connection-line" v-for="item in panelInfo.content.connection"
               :d="formatConnection(item.range, true)"></path>
@@ -84,8 +87,7 @@
         type: Object,
         required: true,
         nodeList: [],
-        connection: [],
-        outputList: []
+        connection: []
       }
     },
     data() {
@@ -202,9 +204,10 @@
           that.selection.range.height = 0;
         }
       },
-      onConnectionStart(startPoint, isStartOutput) {
+      onConnectionStart(startPointNId, isStartOutput) {
         let that = this;
         let panel = this.$refs['ne-panel'];
+        let startPoint = that.getPointPositionByNId(startPointNId);
         that.connection.range.x0 = startPoint.x;
         that.connection.range.y0 = startPoint.y;
         that.connection.isOutput = isStartOutput;
@@ -225,11 +228,12 @@
           that.connection.range.y1 = 0;
         }
       },
-      onConnectionEnd(endPoint, isEndInput) {
+      onConnectionEnd(endPointNId, isEndInput) {
         let that = this;
         let panel = this.$refs['ne-panel'];
         panel.onmousemove = null;
         panel.onmouseup = null;
+        let endPoint = that.getPointPositionByNId(endPointNId);
         if (isEndInput === that.connection.isOutput) {
           if (isEndInput) {
             that.panelInfo.content.connection.push({range: {
@@ -352,6 +356,12 @@
         that.panelInfo.timer = setTimeout(function () {
           that.panelInfo.show = false;
         }, that.panelInfo.delay);
+      },
+      getPointPositionByNId(pointNId) {
+        let that = this;
+        let pointNIdArray = pointNId.split('#');
+        let neNode = that.$refs['node-group' + pointNIdArray[0]][0];
+        return neNode.getPointPosition(pointNIdArray[1]);
       },
       /**
        * 数值转换方法，在缩放坐标的同时保证保证线宽、尺寸等值不变
