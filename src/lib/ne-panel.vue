@@ -208,11 +208,22 @@
       onConnectionStart(startPointNId, isStartOutput) {
         let that = this;
         let panel = this.$refs['ne-panel'];
-        that.connection.range.p0 = startPointNId;
-        that.connection.isOutput = isStartOutput;
+        let pathIndex = that.getPathIndexByPointNId(startPointNId);
+        if (pathIndex === -1) {
+          that.connection.range.p0 = startPointNId;
+          that.connection.isOutput = isStartOutput;
+        } else {
+          that.connection.range.p0 = that.panelInfo.content.connection[pathIndex].range.p0;
+          that.connection.isOutput = true;
+        }
+        let deleted = false;
         panel.onmousemove = function(event) {
           that.connection.range.p1.x = that.formatScale(that.mainPanel.x + event.offsetX);
           that.connection.range.p1.y = that.formatScale(that.mainPanel.y + event.offsetY);
+          if (!deleted && pathIndex !== -1) {
+            that.panelInfo.content.connection.splice(pathIndex, 1);
+            deleted = true;
+          }
           that.connection.show = true;
         };
         panel.onmouseleave = resetFunc;
@@ -221,8 +232,6 @@
           panel.onmousemove = null;
           panel.onmouseup = null;
           that.connection.show = false;
-          that.connection.range.p1.x = 0;
-          that.connection.range.p1.y = 0;
         }
       },
       onConnectionEnd(endPointNId, isEndInput) {
@@ -231,12 +240,12 @@
         panel.onmousemove = null;
         panel.onmouseup = null;
         if (isEndInput === that.connection.isOutput) {
-          if (isEndInput) {
+          if (isEndInput && that.getPathIndexByPointNId(endPointNId) === -1) {
             that.panelInfo.content.connection.push({range: {
               p0: that.connection.range.p0,
               p1: endPointNId
             }});
-          } else {
+          } else if (!isEndInput) {
             that.panelInfo.content.connection.push({range: {
               p0: endPointNId,
               p1: that.connection.range.p0
@@ -244,8 +253,6 @@
           }
         }
         that.connection.show = false;
-        that.connection.range.p1.x = 0;
-        that.connection.range.p1.y = 0;
       },
       onMoveNode(index, event) {
         let that = this;
@@ -310,7 +317,7 @@
       /**
        * 鼠标右键单击事件
        */
-      onRightClick(event) {
+      onRightClick(/*event*/) {
         console.log('right click');
       },
       /**
@@ -356,6 +363,21 @@
         } else {
           return pointNId;
         }
+      },
+      /**
+       * 在连线数组中查找以指定点为结束点的连线
+       * @param pointNId 指定点的pointNId
+       * @returns {Number} 找到：连线的索引值；未找到：-1
+       */
+      getPathIndexByPointNId(pointNId) {
+        let that = this;
+        let connectionList = that.panelInfo.content.connection;
+        for(let index = 0; index < connectionList.length; index++) {
+          if (connectionList[index].range.p1 === pointNId) {
+            return index;
+          }
+        }
+        return -1;
       },
       /**
        * 数值转换方法，在缩放坐标的同时保证保证线宽、尺寸等值不变
