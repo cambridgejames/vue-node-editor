@@ -14,12 +14,17 @@ export default {
       init: {
         nodeList: [
           {nId:'1', name: 'ne-text', x: -300, y: -200, value: '节点1'},
-          {nId:'2', name: 'ne-text', x: -300, y: -50},
-          {nId:'3', name: 'ne-output', x: 200, y: -250, value: 'StringA'},
-          {nId:'4', name: 'ne-output', x: 200, y: -100, value: 'StringB'},
-          {nId:'5', name: 'ne-output', x: 200, y: 50, value: 'StringC'}
+          {nId:'2', name: 'ne-text', x: -300, y: -50, value: '节点2'},
+          {nId:'3', name: 'ne-text', x: -300, y: 100, value: '节点3'},
+          {nId:'4', name: 'ne-add', x: -50, y: -150, value: ['加数1', '加数2']},
+          {nId:'5', name: 'ne-add', x: -50, y: 0, value: ['加数1', '加数2', '加数3']},
+          {nId:'6', name: 'ne-output', x: 200, y: -250, value: 'StringA'},
+          {nId:'7', name: 'ne-output', x: 200, y: -100, value: 'StringB'},
+          {nId:'8', name: 'ne-output', x: 200, y: 50, value: 'StringC'}
         ],
-        connection: []
+        connection: [
+          //{range: {p0: '1#o0', p1: '6#i0'}},
+        ]
       }
     }
   }

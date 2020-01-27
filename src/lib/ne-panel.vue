@@ -49,6 +49,12 @@
                    @movenode.stop="(event) => onMoveNode(index, event)"
                    @connectionstart="onConnectionStart"
                    @connectionend="onConnectionEnd"></ne-text>
+          <ne-add v-else-if="item.name === 'ne-add'" :n-id="item.nId" :x="item.x" :y="item.y"
+                   :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                   :ref="'node-group-item-' + item.nId"
+                   @movenode.stop="(event) => onMoveNode(index, event)"
+                   @connectionstart="onConnectionStart"
+                   @connectionend="onConnectionEnd"></ne-add>
           <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
                      :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
                      :ref="'node-group-item-' + item.nId"
@@ -253,6 +259,7 @@
           }
         }
         that.connection.show = false;
+        console.log(that.panelInfo.content.connection);
       },
       onMoveNode(index, event) {
         let that = this;
