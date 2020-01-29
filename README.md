@@ -1,10 +1,30 @@
 # vue-node-editor
 
-> A visual node editor powered by Vue.js.
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/cambridgejames/vue-node-editor)
+![GitHub last commit](https://img.shields.io/github/last-commit/cambridgejames/vue-node-editor)
+![GitHub](https://img.shields.io/github/license/cambridgejames/vue-node-editor)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/cambridgejames/vue-node-editor)
+![npm bundle size](https://img.shields.io/bundlephobia/min/vue-node-editor)
 
-## Build Setup
+> 基于Vue.js的可视化节点编辑器组件
 
-``` bash
+## 安装
+
+```$xslt
+# 执行以下命令在当前项目中安装vue-node-editor
+npm install vue-node-editor --save
+```
+
+## 构建
+
+### 环境依赖
+
+1. NodeJs v10.12.0 (npm 6.4.1)
+2. Vue 2.9.6
+
+### 构建步骤
+
+```$xslt
 # install dependencies
 npm install
 
@@ -18,4 +38,33 @@ npm run build
 npm run build --report
 ```
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## 目录结构
+
+```$xslt
+vue-node-editor
+    ├ build
+    ├ config
+    ├ src
+    │   ├ components
+    │   │   └ HelloWorld.vue - 用于演示组件而做的封装组件
+    │   ├ lib
+    │   │   ├ nodes
+    │   │   │   └ 节点组件
+    │   │   ├ scss
+    │   │   │   └ 公共样式表
+    │   │   ├ index.js - 组件的入口文件
+    │   │   └ ne-panel.vue - 主要组件
+    │   ├ router
+    │   │   └ index.js - 路由文件，用于演示
+    │   ├ App.vue
+    │   └ main.js
+    ├ index.html
+    ├ LICENSE
+    ├ package.json
+    ├ package-lock.json
+    └ README.md
+```
+
+## 版权说明
+
+该项目签署了MIT授权许可，详情请参阅 LICENSE 文件
