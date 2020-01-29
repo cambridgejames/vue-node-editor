@@ -118,7 +118,10 @@
             realX: 0,
             realY: 0
           },
-          content: this.init
+          content: {
+            nodeList: [],
+            connection: []
+          }
         },
         selection: {
           show: false,
@@ -259,7 +262,6 @@
           }
         }
         that.connection.show = false;
-        console.log(that.panelInfo.content.connection);
       },
       onMoveNode(index, event) {
         let that = this;
@@ -365,10 +367,10 @@
         let that = this;
         if(typeof pointNId === 'string') {
           let pointNIdArray = pointNId.split('#');
-          let neNode = that.$refs['node-group-item-' + pointNIdArray[0]][0];
-          return neNode.getPointPosition(pointNIdArray[1]);
+          let neNode = that.$refs['node-group-item-' + pointNIdArray[0]];
+          return neNode[0].getPointPosition(pointNIdArray[1]);
         } else {
-          return pointNId;
+          return pointNId; // 如果传入的参数不是字符串说明这个参数就是坐标，直接返回即可
         }
       },
       /**
@@ -430,13 +432,19 @@
       }
     },
     mounted () {
+      let that = this;
       // 对画布尺寸进行初始化，绑定事件监听方法
-      let container = this.$refs["ne-panel"];
-      this.mainPanel.width = container.offsetWidth;
-      this.mainPanel.height = container.offsetHeight;
-      this.mainPanel.x = -container.offsetWidth / 2;
-      this.mainPanel.y = -container.offsetHeight / 2;
-      window.onresize = this.onResize;
+      let container = that.$refs["ne-panel"];
+      that.mainPanel.width = container.offsetWidth;
+      that.mainPanel.height = container.offsetHeight;
+      that.mainPanel.x = -container.offsetWidth / 2;
+      that.mainPanel.y = -container.offsetHeight / 2;
+      window.onresize = that.onResize;
+      that.panelInfo.content.nodeList = that.init.nodeList ? that.init.nodeList : [];
+      that.$nextTick(function() {
+        // 在初始化节点DOM完成后再创建连线
+        that.panelInfo.content.connection = that.init.connection ? that.init.connection : [];
+      });
     }
   }
 </script>
