@@ -1,88 +1,90 @@
 <template>
-  <div ref="ne-panel" class="ne-panel">
-    <!--主面板-->
-    <svg ref="ne-main-panel" class="ne-main-panel" :width="mainPanel.width" :height="mainPanel.height"
-         :viewBox="formatScale(mainPanel.x) + ' ' + formatScale(mainPanel.y) + ' '
+    <div ref="ne-panel" class="ne-panel">
+        <!--主面板-->
+        <svg ref="ne-main-panel" class="ne-main-panel" :width="mainPanel.width" :height="mainPanel.height"
+             :viewBox="formatScale(mainPanel.x) + ' ' + formatScale(mainPanel.y) + ' '
               + formatScale(mainPanel.width) + ' ' + formatScale(mainPanel.height)"
-         @wheel.stop.prevent="onHandleScroll"
-         @contextmenu.stop.prevent=""
-         @mousedown.right.stop.prevent="onRightMouseDown"
-         @mousemove="onMouseMove">
-      <defs ref="grid-defs" class="grid-defs">
-        <pattern id="mn-grid" width="0.5" height="0.5" patternUnits="userSpaceOnUse">
-          <path d="M 0.5 0 L 0 0 0 0.5" :stroke-width="formatScale(mainPanel.scale.value >= 80 ? 1 : 0.5)"/>
-        </pattern>
-        <pattern id="xs-grid" width="5" height="5" patternUnits="userSpaceOnUse">
-          <rect v-if="mainPanel.scale.value >= 8" width="5" height="5" fill="url(#mn-grid)"/>
-          <path d="M 5 0 L 0 0 0 5" :stroke-width="formatScale(mainPanel.scale.value >= 8 ? 1 : 0.5)"/>
-        </pattern>
-        <pattern id="sm-grid" width="50" height="50" patternUnits="userSpaceOnUse">
-          <rect v-if="mainPanel.scale.value >= 0.8" width="50" height="50" fill="url(#xs-grid)"/>
-          <path d="M 50 0 L 0 0 0 50" :stroke-width="formatScale(mainPanel.scale.value >= 0.8 ? 1 : 0.5)"/>
-        </pattern>
-        <pattern id="md-grid" width="500" height="500" patternUnits="userSpaceOnUse">
-          <rect v-if="mainPanel.scale.value >= 0.08" width="500" height="500" fill="url(#sm-grid)"/>
-          <path d="M 500 0 L 0 0 0 500" :stroke-width="formatScale(mainPanel.scale.value >= 0.08 ? 1 : 0.5)"/>
-        </pattern>
-        <pattern id="lg-grid" width="5000" height="5000" patternUnits="userSpaceOnUse">
-          <rect v-if="mainPanel.scale.value >= 0.008" width="5000" height="5000" fill="url(#md-grid)"/>
-          <path d="M 5000 0 L 0 0 0 5000" :stroke-width="formatScale(mainPanel.scale.value >= 0.008 ? 1 : 0.5)"/>
-        </pattern>
-      </defs>
-      <!--网格和坐标系-->
-      <g ref="grid-group" class="grid-group"
-         @mousedown.left.stop="onLeftMouseDown">
-        <rect :x="formatScale(mainPanel.x)" :y="formatScale(mainPanel.y)"
-              :width="formatScale(mainPanel.width)" :height="formatScale(mainPanel.height)"
-              :fill="'url(#' + formatGrid(mainPanel.scale.value) + ')'"/>
-        <line x1="0" :y1="formatScale(mainPanel.y)" x2="0" :y2="formatScale(mainPanel.y + mainPanel.height)"
-              :stroke-width="formatScale(1)" class="coordinate-axis"/>
-        <line y1="0" :x1="formatScale(mainPanel.x)" y2="0" :x2="formatScale(mainPanel.x + mainPanel.width)"
-              :stroke-width="formatScale(1)" class="coordinate-axis"/>
-      </g>
-      <!--节点-->
-      <g ref="node-group">
-        <g v-for="(item, index) in panelInfo.content.nodeList" :key="index">
-          <ne-text v-if="item.name === 'ne-text'" :n-id="item.nId" :x="item.x" :y="item.y"
-                   :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                   :ref="'node-group-item-' + item.nId"
-                   @movenode.stop="(event) => onMoveNode(index, event)"
-                   @connectionstart="onConnectionStart"
-                   @connectionend="onConnectionEnd"></ne-text>
-          <ne-add v-else-if="item.name === 'ne-add'" :n-id="item.nId" :x="item.x" :y="item.y"
-                   :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                   :ref="'node-group-item-' + item.nId"
-                   @movenode.stop="(event) => onMoveNode(index, event)"
-                   @connectionstart="onConnectionStart"
-                   @connectionend="onConnectionEnd"></ne-add>
-          <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
-                     :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                     :ref="'node-group-item-' + item.nId"
-                     @movenode.stop="(event) => onMoveNode(index, event)"
-                     @connectionstart="onConnectionStart"
-                     @connectionend="onConnectionEnd"></ne-output>
-        </g>
-      </g>
-      <!--节点间连线-->
-      <g ref="connection-group" class="connection-group">
-        <path ref="connection-line" class="connection-line" v-for="item in panelInfo.content.connection"
-              :d="formatConnection(item.range, true)"></path>
-      </g>
-      <!--工具组-->
-      <g ref="tool-group" class="tool-group">
-        <rect ref="selection-range" class="selection-range" v-if="selection.show"
-              :stroke-width="formatScale(1.5)" :stroke-dasharray="formatScale(4) + ',' + formatScale(4)"
-              :x="selection.range.x" :y="selection.range.y" :width="selection.range.width" :height="selection.range.height"></rect>
-        <path ref="connection-line" class="connection-line" v-if="connection.show"
-              :d="formatConnection(connection.range, connection.isOutput)"></path>
-      </g>
-    </svg>
-    <div ref="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
-      <p>缩放：{{Math.ceil(mainPanel.scale.value * 100)}}%</p>
-      <p>坐标：({{panelInfo.mouse.realX.toFixed(1)}}, {{panelInfo.mouse.realY.toFixed(1)}})</p>
-      <p>大小：{{formatScale(mainPanel.width).toFixed(0)}} * {{formatScale(mainPanel.height).toFixed(0)}}</p>
+             @wheel.stop.prevent="onHandleScroll"
+             @contextmenu.stop.prevent=""
+             @mousedown.right.stop.prevent="onRightMouseDown"
+             @mousemove="onMouseMove">
+            <defs ref="grid-defs" class="grid-defs">
+                <pattern id="mn-grid" width="0.5" height="0.5" patternUnits="userSpaceOnUse">
+                    <path d="M 0.5 0 L 0 0 0 0.5" :stroke-width="formatScale(mainPanel.scale.value >= 80 ? 1 : 0.5)"/>
+                </pattern>
+                <pattern id="xs-grid" width="5" height="5" patternUnits="userSpaceOnUse">
+                    <rect v-if="mainPanel.scale.value >= 8" width="5" height="5" fill="url(#mn-grid)"/>
+                    <path d="M 5 0 L 0 0 0 5" :stroke-width="formatScale(mainPanel.scale.value >= 8 ? 1 : 0.5)"/>
+                </pattern>
+                <pattern id="sm-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                    <rect v-if="mainPanel.scale.value >= 0.8" width="50" height="50" fill="url(#xs-grid)"/>
+                    <path d="M 50 0 L 0 0 0 50" :stroke-width="formatScale(mainPanel.scale.value >= 0.8 ? 1 : 0.5)"/>
+                </pattern>
+                <pattern id="md-grid" width="500" height="500" patternUnits="userSpaceOnUse">
+                    <rect v-if="mainPanel.scale.value >= 0.08" width="500" height="500" fill="url(#sm-grid)"/>
+                    <path d="M 500 0 L 0 0 0 500" :stroke-width="formatScale(mainPanel.scale.value >= 0.08 ? 1 : 0.5)"/>
+                </pattern>
+                <pattern id="lg-grid" width="5000" height="5000" patternUnits="userSpaceOnUse">
+                    <rect v-if="mainPanel.scale.value >= 0.008" width="5000" height="5000" fill="url(#md-grid)"/>
+                    <path d="M 5000 0 L 0 0 0 5000"
+                          :stroke-width="formatScale(mainPanel.scale.value >= 0.008 ? 1 : 0.5)"/>
+                </pattern>
+            </defs>
+            <!--网格和坐标系-->
+            <g ref="grid-group" class="grid-group"
+               @mousedown.left.stop="onLeftMouseDown">
+                <rect :x="formatScale(mainPanel.x)" :y="formatScale(mainPanel.y)"
+                      :width="formatScale(mainPanel.width)" :height="formatScale(mainPanel.height)"
+                      :fill="'url(#' + formatGrid(mainPanel.scale.value) + ')'"/>
+                <line x1="0" :y1="formatScale(mainPanel.y)" x2="0" :y2="formatScale(mainPanel.y + mainPanel.height)"
+                      :stroke-width="formatScale(1)" class="coordinate-axis"/>
+                <line y1="0" :x1="formatScale(mainPanel.x)" y2="0" :x2="formatScale(mainPanel.x + mainPanel.width)"
+                      :stroke-width="formatScale(1)" class="coordinate-axis"/>
+            </g>
+            <!--节点-->
+            <g ref="node-group">
+                <g v-for="(item, index) in panelInfo.content.nodeList" :key="index">
+                    <ne-text v-if="item.name === 'ne-text'" :n-id="item.nId" :x="item.x" :y="item.y"
+                             :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                             :ref="'node-group-item-' + item.nId"
+                             @movenode.stop="(event) => onMoveNode(index, event)"
+                             @connectionstart="onConnectionStart"
+                             @connectionend="onConnectionEnd"></ne-text>
+                    <ne-add v-else-if="item.name === 'ne-add'" :n-id="item.nId" :x="item.x" :y="item.y"
+                            :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                            :ref="'node-group-item-' + item.nId"
+                            @movenode.stop="(event) => onMoveNode(index, event)"
+                            @connectionstart="onConnectionStart"
+                            @connectionend="onConnectionEnd"></ne-add>
+                    <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
+                               :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                               :ref="'node-group-item-' + item.nId"
+                               @movenode.stop="(event) => onMoveNode(index, event)"
+                               @connectionstart="onConnectionStart"
+                               @connectionend="onConnectionEnd"></ne-output>
+                </g>
+            </g>
+            <!--节点间连线-->
+            <g ref="connection-group" class="connection-group">
+                <path ref="connection-line" class="connection-line" v-for="item in panelInfo.content.connection"
+                      :d="formatConnection(item.range, true)"></path>
+            </g>
+            <!--工具组-->
+            <g ref="tool-group" class="tool-group">
+                <rect ref="selection-range" class="selection-range" v-if="selection.show"
+                      :stroke-width="formatScale(1.5)" :stroke-dasharray="formatScale(4) + ',' + formatScale(4)"
+                      :x="selection.range.x" :y="selection.range.y" :width="selection.range.width"
+                      :height="selection.range.height"></rect>
+                <path ref="connection-line" class="connection-line" v-if="connection.show"
+                      :d="formatConnection(connection.range, connection.isOutput)"></path>
+            </g>
+        </svg>
+        <div ref="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
+            <p>缩放：{{Math.ceil(mainPanel.scale.value * 100)}}%</p>
+            <p>坐标：({{panelInfo.mouse.realX.toFixed(1)}}, {{panelInfo.mouse.realY.toFixed(1)}})</p>
+            <p>大小：{{formatScale(mainPanel.width).toFixed(0)}} * {{formatScale(mainPanel.height).toFixed(0)}}</p>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -450,72 +452,75 @@
 </script>
 
 <style lang="scss" scoped>
-  @import './scss/base.scss';
+    @import './scss/base.scss';
 
-  .ne-panel {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
+    .ne-panel {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
 
-    .ne-main-panel {
-      width: 100%;
-      height: 100%;
+        .ne-main-panel {
+            width: 100%;
+            height: 100%;
 
-      .grid-defs {
-        path {
-          fill: none;
-          stroke: $grid-stroke-color;
-          stroke-opacity: 0.4;
+            .grid-defs {
+                path {
+                    fill: none;
+                    stroke: $grid-stroke-color;
+                    stroke-opacity: 0.4;
+                }
+            }
+
+            .grid-group {
+                .coordinate-axis {
+                    stroke: $grid-stroke-color;
+                    stroke-opacity: 0.4;
+                }
+            }
+
+            .connection-group {
+                .connection-line {
+                    fill: none;
+                    stroke: black;
+                    stroke-width: 1.5;
+                    stroke-linecap: round;
+                }
+            }
+
+            .tool-group {
+                .selection-range {
+                    fill: none;
+                    stroke: $selection-box-color;
+                }
+
+                .connection-line {
+                    fill: none;
+                    stroke: black;
+                    stroke-width: 1.5;
+                    stroke-linecap: round;
+                }
+            }
         }
-      }
 
-      .grid-group {
-        .coordinate-axis {
-          stroke: $grid-stroke-color;
-          stroke-opacity: 0.4;
-        }
-      }
+        .ne-panel-info {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            padding: 10px;
+            color: #fff;
+            font-size: 12px;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: all .3s ease-in-out;
 
-      .connection-group {
-        .connection-line {
-          fill: none;
-          stroke: black;
-          stroke-width: 1.5;
-          stroke-linecap: round;
+            &[class*=show] {
+                opacity: 1;
+            }
         }
-      }
-
-      .tool-group {
-        .selection-range {
-          fill: none;
-          stroke: $selection-box-color;
-        }
-
-        .connection-line {
-          fill: none;
-          stroke: black;
-          stroke-width: 1.5;
-          stroke-linecap: round;
-        }
-      }
     }
-
-    .ne-panel-info {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      padding: 10px;
-      color: #fff;
-      font-size: 12px;
-      background-color: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      transition: all .3s ease-in-out;
-      &[class*=show] { opacity: 1; }
-    }
-  }
 </style>
