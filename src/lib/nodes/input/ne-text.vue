@@ -27,110 +27,120 @@
 </template>
 
 <script>
-  export default {
+export default {
     name: 'ne-text',
     props: {
-      nId: {
-        type: String,
-        required: true
-      },
-      x: {
-        type: Number,
-        required: true
-      },
-      y: {
-        type: Number,
-        required: true
-      },
-      value: {
-        type: String,
-        required: false
-      },
-      scale: {
-        type: Number,
-        required: true
-      },
-      selected: {
-        type: Boolean,
-        default: false,
-        required: true
-      }
+        nId: {
+            type: String,
+            required: true
+        },
+        x: {
+            type: Number,
+            required: true
+        },
+        y: {
+            type: Number,
+            required: true
+        },
+        value: {
+            type: String,
+            required: false
+        },
+        scale: {
+            type: Number,
+            required: true
+        },
+        selected: {
+            type: Boolean,
+            default: false,
+            required: true
+        }
     },
     watch: {
-      value(newVal) { this.input.value = newVal; },
-      x(newVal) { this.mainPanel.x = newVal; },
-      y(newVal) { this.mainPanel.y = newVal; },
-      scale(newVal) { this.mainPanel.scale = newVal; },
-      selected(newVal) { this.mainPanel.selected = newVal; }
-    },
-    data() {
-      return {
-        mainPanel: {
-          scale: this.scale,
-          x: this.x,
-          y: this.y,
-          width: 150,
-          height: 80,
-          selected: this.selected
+        value (newVal) {
+            this.input.value = newVal
         },
-        input: {
-          value: this.value
+        x (newVal) {
+            this.mainPanel.x = newVal
+        },
+        y (newVal) {
+            this.mainPanel.y = newVal
+        },
+        scale (newVal) {
+            this.mainPanel.scale = newVal
+        },
+        selected (newVal) {
+            this.mainPanel.selected = newVal
         }
-      }
+    },
+    data () {
+        return {
+            mainPanel: {
+                scale: this.scale,
+                x: this.x,
+                y: this.y,
+                width: 150,
+                height: 80,
+                selected: this.selected
+            },
+            input: {
+                value: this.value
+            }
+        }
     },
     methods: {
-      onChangeValue() {
-        this.$emit('value', this.input.value);
-      },
-      onLeftMouseDown(event) {
-        this.$emit('movenode', event);
-      },
-      onConnectionStart(pointNId) {
-        this.$emit('connectionstart', this.nId + '#' + pointNId, true);
-      },
-      onConnectionEnd(pointNId) {
-        this.$emit('connectionend', this.nId + '#' + pointNId, false);
-      },
-      getPointPosition(pointNId) {
-        if(pointNId === 'o0') {
-          return {
-            x: this.mainPanel.x + this.mainPanel.width - 10,
-            y: this.mainPanel.y + 36
-          };
-        } else {
-          return null;
+        onChangeValue () {
+            this.$emit('value', this.input.value)
+        },
+        onLeftMouseDown (event) {
+            this.$emit('movenode', event)
+        },
+        onConnectionStart (pointNId) {
+            this.$emit('connectionstart', this.nId + '#' + pointNId, true)
+        },
+        onConnectionEnd (pointNId) {
+            this.$emit('connectionend', this.nId + '#' + pointNId, false)
+        },
+        getPointPosition (pointNId) {
+            if (pointNId === 'o0') {
+                return {
+                    x: this.mainPanel.x + this.mainPanel.width - 10,
+                    y: this.mainPanel.y + 36
+                }
+            } else {
+                return null
+            }
+        },
+        formatScale (number) {
+            return number / this.mainPanel.scale
         }
-      },
-      formatScale(number) {
-        return number / this.mainPanel.scale;
-      }
     },
     mounted () {
 
     }
-  }
+}
 </script>
 
 <style lang="scss" scoped>
-    @import '../../scss/base.scss';
+@import '../../scss/base.scss';
 
-    .ne-text {
-        .text-main-container {
-            fill: $input-node-background;
-        }
+.ne-text {
+    .text-main-container {
+        fill: $input-node-background;
+    }
 
-        .text-input-group {
-            .text-input-box {
-                .text-input-control {
-                    width: 120px;
-                    height: 24px;
-                    margin-left: 15px;
-                    line-height: 24px;
-                    outline: none;
-                    border: none;
-                }
+    .text-input-group {
+        .text-input-box {
+            .text-input-control {
+                width: 120px;
+                height: 24px;
+                margin-left: 15px;
+                line-height: 24px;
+                outline: none;
+                border: none;
             }
         }
     }
+}
 
 </style>
