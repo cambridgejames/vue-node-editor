@@ -4,7 +4,7 @@ export default {
         return {};
     },
     methods: {
-        fix (event) {
+        fixEvent (event) {
             return event;
         }
     }

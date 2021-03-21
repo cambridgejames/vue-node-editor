@@ -88,10 +88,11 @@
 </template>
 
 <script>
-import eventConverter from './js/event-converter';
+import eventConverter from './js/event/eventConverter';
 
 export default {
     name: 'ne-panel',
+    mixins: [eventConverter],
     props: {
         init: {
             type: Object,
@@ -153,9 +154,11 @@ export default {
     methods: {
         /**
          * 鼠标移动响应方法，当鼠标在面板上移动时触发，显示鼠标当前的世界坐标
+         *
+         * @param event 鼠标事件
          */
         onMouseMove (event) {
-            event = eventConverter.fix(event);
+            event = this.fixEvent(event);
             let that = this;
             that.panelInfo.mouse.realX = that.formatScale(that.mainPanel.x + event.offsetX);
             that.panelInfo.mouse.realY = that.formatScale(that.mainPanel.y + event.offsetY);
@@ -164,30 +167,34 @@ export default {
         },
         /**
          * 鼠标滚轮响应方法，对画布进行缩放
+         *
+         * @param event 鼠标事件
          */
         onHandleScroll (event) {
-            event = eventConverter.fix(event);
-            console.log(event);
+            event = this.fixEvent(event);
             let that = this;
             let scale = that.mainPanel.scale; // 原始缩放倍数
-            if ((scale.value === scale.minValue && event.originalEvent.deltaY > 0)
-                || (scale.value === scale.maxValue && event.originalEvent.deltaY <= 0)) {
+            if ((scale.value === scale.minValue && event.deltaY > 0)
+                || (scale.value === scale.maxValue && event.deltaY <= 0)) {
                 return; // 如果已经到了最小比例却还继续缩小或已经到了最大比例却还继续放大，就不做操作
             }
-            let scaleCache = scale.value * (event.originalEvent.deltaY > 0 ? 1 - scale.speed : 1 + scale.speed);
+            let scaleCache = scale.value * (event.deltaY > 0 ? 1 - scale.speed : 1 + scale.speed);
             scaleCache = Math.max(scale.minValue, Math.min(scale.maxValue, scaleCache));  // 目标缩放倍数
             let realX = that.formatScale(that.mainPanel.x + event.offsetX);
             let realY = that.formatScale(that.mainPanel.y + event.offsetY);
-            that.mainPanel.x -= realX * scale.speed * scale.value * (event.originalEvent.deltaY > 0 ? 1 : -1);
-            that.mainPanel.y -= realY * scale.speed * scale.value * (event.originalEvent.deltaY > 0 ? 1 : -1);
+            that.mainPanel.x -= realX * scale.speed * scale.value * (event.deltaY > 0 ? 1 : -1);
+            that.mainPanel.y -= realY * scale.speed * scale.value * (event.deltaY > 0 ? 1 : -1);
             scale.value = scaleCache;
             // 显示缩放倍数
             that.onPageInfoShow();
         },
         /**
          * 背景面板上的鼠标左键事件，包括左键单击和框选
+         *
+         * @param event 鼠标事件
          */
         onLeftMouseDown (event) {
+            event = this.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let realX = that.formatScale(that.mainPanel.x + event.offsetX);
@@ -277,24 +284,33 @@ export default {
             }
             that.connection.show = false;
         },
+        /**
+         * 移动节点事件
+         *
+         * @param index 节点序号
+         * @param event 鼠标事件
+         */
         onMoveNode (index, event) {
+            event = this.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let node = that.panelInfo.content.nodeList[index];
             let xBefore = event.clientX;
             let yBefore = event.clientY;
             panel.style.cursor = 'pointer';
-            panel.onmousemove = function (event) {
-                node.x += (event.clientX - xBefore) / that.mainPanel.scale.value;
-                node.y += (event.clientY - yBefore) / that.mainPanel.scale.value;
-                xBefore = event.clientX;
-                yBefore = event.clientY;
+            panel.onmousemove = function (subEvent) {
+                subEvent = that.fixEvent(subEvent);
+                node.x += (subEvent.clientX - xBefore) / that.mainPanel.scale.value;
+                node.y += (subEvent.clientY - yBefore) / that.mainPanel.scale.value;
+                xBefore = subEvent.clientX;
+                yBefore = subEvent.clientY;
             };
             panel.onmouseleave = resetFunc;
-            panel.onmouseup = function (ev) {
+            panel.onmouseup = function (subEvent) {
+                subEvent = that.fixEvent(subEvent);
                 resetFunc();
                 if (event.clientX === xBefore && event.clientY === yBefore) {
-                    that.onLeftClick(ev, node);
+                    that.onLeftClick(subEvent, node);
                 }
             };
 
@@ -306,24 +322,29 @@ export default {
         },
         /**
          * 鼠标右键事件，包括右键单击和拖拽画布
+         *
+         * @param event 鼠标事件
          */
         onRightMouseDown (event) {
+            event = this.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let xBefore = event.clientX;
             let yBefore = event.clientY;
             panel.style.cursor = 'pointer';
-            panel.onmousemove = function (event) {
-                that.mainPanel.x -= event.clientX - xBefore;
-                that.mainPanel.y -= event.clientY - yBefore;
-                xBefore = event.clientX;
-                yBefore = event.clientY;
+            panel.onmousemove = function (subEvent) {
+                subEvent = that.fixEvent(subEvent);
+                that.mainPanel.x -= subEvent.clientX - xBefore;
+                that.mainPanel.y -= subEvent.clientY - yBefore;
+                xBefore = subEvent.clientX;
+                yBefore = subEvent.clientY;
             };
             panel.onmouseleave = resetFunc;
-            panel.onmouseup = function (ev) {
+            panel.onmouseup = function (subEvent) {
+                subEvent = that.fixEvent(subEvent);
                 resetFunc();
                 if (event.clientX === xBefore && event.clientY === yBefore) {
-                    that.onRightClick(ev);
+                    that.onRightClick(subEvent);
                 }
             };
 
@@ -335,9 +356,12 @@ export default {
         },
         /**
          * 鼠标左键单击事件
+         *
+         * @param event 鼠标事件
+         * @param node 被点击的的节点（当点击的不是节点时为null）
          */
         onLeftClick (event, node) {
-            event = eventConverter.fix(event);
+            event = this.fixEvent(event);
             console.log(event.offset);
             console.log('left click on ' + (node ? 'node' : 'panel'));
         },
@@ -393,6 +417,7 @@ export default {
         },
         /**
          * 在连线数组中查找以指定点为结束点的连线
+         *
          * @param pointNId 指定点的pointNId
          * @returns {Number} 找到：连线的索引值；未找到：-1
          */
@@ -408,12 +433,18 @@ export default {
         },
         /**
          * 数值转换方法，在缩放坐标的同时保证保证线宽、尺寸等值不变
+         *
+         * @param number 期望显示出来的尺寸数值
+         * @returns {Number} 转换后的在画布上的实际尺寸
          */
         formatScale (number) {
             return number / this.mainPanel.scale.value;
         },
         /**
          * 根据传入的放大倍数返回合适尺寸的格子
+         *
+         * @param number 当前的放大倍数
+         * @returns {string} 当前应该使用的格子种类
          */
         formatGrid (number) {
             if (number >= 8) {
@@ -430,6 +461,7 @@ export default {
         },
         /**
          * 根据坐标和起始点信息绘制节点间的联结三次贝塞尔曲线
+         *
          * @param pathPoint 起始点和终点坐标及控制点位置设置
          * @param isStartOutput 线型（起始点是否是输出点）
          * @returns {string} 三次贝塞尔曲线的path路径
@@ -457,10 +489,7 @@ export default {
         that.mainPanel.height = container.offsetHeight;
         that.mainPanel.x = -container.offsetWidth / 2;
         that.mainPanel.y = -container.offsetHeight / 2;
-        console.log(that.mainPanel.x, that.mainPanel.y);
-        $(that.$refs['ne-panel']).on('click', function (event) {
-            console.log(event);
-        });
+        console.warn(`Init ne-panel: [${that.mainPanel.x}, ${that.mainPanel.y}, ${that.mainPanel.width}, ${that.mainPanel.height}]`);
         window.onresize = that.onResize;
         that.panelInfo.content.nodeList = that.init.nodeList ? that.init.nodeList : [];
         that.$nextTick(function () {
