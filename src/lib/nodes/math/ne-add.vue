@@ -57,19 +57,19 @@ export default {
     },
     watch: {
         value (newVal) {
-            this.mainPanel.value = newVal
+            this.mainPanel.value = newVal;
         },
         x (newVal) {
-            this.mainPanel.x = newVal
+            this.mainPanel.x = newVal;
         },
         y (newVal) {
-            this.mainPanel.y = newVal
+            this.mainPanel.y = newVal;
         },
         scale (newVal) {
-            this.mainPanel.scale = newVal
+            this.mainPanel.scale = newVal;
         },
         selected (newVal) {
-            this.mainPanel.selected = newVal
+            this.mainPanel.selected = newVal;
         }
     },
     data () {
@@ -83,44 +83,44 @@ export default {
                 selected: this.selected,
                 value: this.value
             }
-        }
+        };
     },
     methods: {
         onChangeValue () {
-            this.$emit('value', this.input.value)
+            this.$emit('value', this.input.value);
         },
         onLeftMouseDown (event) {
-            this.$emit('movenode', event)
+            this.$emit('movenode', event);
         },
         onConnectionStart (pointNId) {
-            this.$emit('connectionstart', this.nId + '#' + pointNId, pointNId.charAt(0) === 'o')
+            this.$emit('connectionstart', this.nId + '#' + pointNId, pointNId.charAt(0) === 'o');
         },
         onConnectionEnd (pointNId) {
-            this.$emit('connectionend', this.nId + '#' + pointNId, pointNId.charAt(0) === 'i')
+            this.$emit('connectionend', this.nId + '#' + pointNId, pointNId.charAt(0) === 'i');
         },
         getPointPosition (pointNId) {
             if (pointNId === 'o0') {
                 return {
                     x: this.mainPanel.x + this.mainPanel.width - 10,
                     y: this.mainPanel.y + 36
-                }
+                };
             } else if (pointNId.charAt(0) === 'i') {
                 return {
                     x: this.mainPanel.x + 10,
                     y: this.mainPanel.y + 60 + parseInt(pointNId.substr(1)) * 24
-                }
+                };
             } else {
-                return null
+                return null;
             }
         },
         formatScale (number) {
-            return number / this.mainPanel.scale
+            return number / this.mainPanel.scale;
         }
     },
     mounted () {
-        this.mainPanel.height = this.mainPanel.value.length * 24 + 48
+        this.mainPanel.height = this.mainPanel.value.length * 24 + 48;
     }
-}
+};
 </script>
 
 <style lang="scss" scoped>

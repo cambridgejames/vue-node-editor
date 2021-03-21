@@ -49,19 +49,19 @@ export default {
     },
     watch: {
         x (newVal) {
-            this.mainPanel.x = newVal
+            this.mainPanel.x = newVal;
         },
         y (newVal) {
-            this.mainPanel.y = newVal
+            this.mainPanel.y = newVal;
         },
         scale (newVal) {
-            this.mainPanel.scale = newVal
+            this.mainPanel.scale = newVal;
         },
         selected (newVal) {
-            this.mainPanel.selected = newVal
+            this.mainPanel.selected = newVal;
         },
         value (newVal) {
-            this.mainPanel.value = newVal
+            this.mainPanel.value = newVal;
         }
     },
     data () {
@@ -75,39 +75,39 @@ export default {
                 selected: this.selected,
                 value: this.value
             }
-        }
+        };
     },
     methods: {
         onChangeValue () {
-            this.$emit('value', this.input.value)
+            this.$emit('value', this.input.value);
         },
         onLeftMouseDown (event) {
-            this.$emit('movenode', event)
+            this.$emit('movenode', event);
         },
         onConnectionStart (pointNId) {
-            this.$emit('connectionstart', this.nId + '#' + pointNId, false)
+            this.$emit('connectionstart', this.nId + '#' + pointNId, false);
         },
         onConnectionEnd (pointNId) {
-            this.$emit('connectionend', this.nId + '#' + pointNId, true)
+            this.$emit('connectionend', this.nId + '#' + pointNId, true);
         },
         getPointPosition (pointNId) {
             if (pointNId === 'i0') {
                 return {
                     x: this.mainPanel.x + 10,
                     y: this.mainPanel.y + 36
-                }
+                };
             } else {
-                return null
+                return null;
             }
         },
         formatScale (number) {
-            return number / this.mainPanel.scale
+            return number / this.mainPanel.scale;
         }
     },
     mounted () {
 
     }
-}
+};
 </script>
 
 <style lang="scss" scoped>
