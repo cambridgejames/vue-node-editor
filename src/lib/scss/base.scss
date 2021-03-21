@@ -79,4 +79,11 @@ $selected-node-border: #3369e7;
             }
         }
     }
+
+    &:hover {
+        .main-container {
+            stroke: grey;
+            stroke-width: 2;
+        }
+    }
 }

@@ -534,6 +534,11 @@ export default {
                 stroke: black;
                 stroke-width: 1.5;
                 stroke-linecap: round;
+                cursor: pointer;
+
+                &:hover {
+                    stroke: gray;
+                }
             }
         }
 
