@@ -79,6 +79,9 @@
                       :d="formatConnection(connection.range, connection.isOutput)"></path>
             </g>
         </svg>
+        <div ref="ne-panel-reset" :class="{'ne-panel-reset':true, 'show':!isInitialState()}" @click="resetScale()">
+            <ne-comp-svg type="reset" :width="20" :height="20"></ne-comp-svg>
+        </div>
         <div ref="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
             <p>缩放：{{ Math.ceil(mainPanel.scale.value * 100) }}%</p>
             <p>坐标：({{ panelInfo.mouse.realX.toFixed(1) }}, {{ panelInfo.mouse.realY.toFixed(1) }})</p>
@@ -88,6 +91,7 @@
 </template>
 
 <script>
+import neCompSvg from './components/ne-comp-svg';
 import eventConverter from './js/event/eventConverter';
 
 export default {
@@ -100,6 +104,9 @@ export default {
             nodeList: [],
             connection: []
         }
+    },
+    components: {
+        neCompSvg
     },
     data () {
         return {
@@ -479,6 +486,24 @@ export default {
             let mixArray = ['M', pathPointNew.p0.x, pathPointNew.p0.y,
                 'C', x2, pathPointNew.p0.y, x3, pathPointNew.p1.y, pathPointNew.p1.x, pathPointNew.p1.y];
             return mixArray.join(' ');
+        },
+        /**
+         * 判断视图是否处于初始状态
+         *
+         * @returns {Boolean} 视图是否处于初始状态
+         */
+        isInitialState() {
+            return this.mainPanel.scale.value === 1
+                && this.mainPanel.x === this.mainPanel.width / -2
+                && this.mainPanel.y === this.mainPanel.height / -2;
+        },
+        /**
+         * 重置缩放倍率
+         */
+        resetScale () {
+            this.mainPanel.scale.value = 1;
+            this.mainPanel.x = this.mainPanel.width / -2;
+            this.mainPanel.y = this.mainPanel.height / -2;
         }
     },
     mounted () {
@@ -557,6 +582,26 @@ export default {
         }
     }
 
+    .ne-panel-reset {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        padding: 10px;
+        background-color: $tips-background;
+        fill: #fff;
+        opacity: 0;
+        transition: all .3s ease-in-out;
+        cursor: pointer;
+
+        &[class*=show] {
+            opacity: 1;
+        }
+    }
+
     .ne-panel-info {
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -568,7 +613,7 @@ export default {
         padding: 10px;
         color: #fff;
         font-size: 12px;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: $tips-background;
         opacity: 0;
         transition: all .3s ease-in-out;
 

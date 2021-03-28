@@ -7,6 +7,13 @@ $output-node-background: #ff4f81;
 
 $selected-node-border: #3369e7;
 
+$tips-background: rgba(0, 0, 0, 0.3);
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
 .ne-node {
     -webkit-user-select: none;
     -moz-user-select: none;
