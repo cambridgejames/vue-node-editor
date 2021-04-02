@@ -338,7 +338,7 @@ export default {
             let panel = this.$refs['ne-panel'];
             let xBefore = event.clientX;
             let yBefore = event.clientY;
-            panel.style.cursor = 'pointer';
+            panel.style.cursor = 'move';
             panel.onmousemove = function (subEvent) {
                 subEvent = that.fixEvent(subEvent);
                 that.mainPanel.x -= subEvent.clientX - xBefore;
