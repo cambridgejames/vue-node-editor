@@ -96,7 +96,6 @@ import eventConverter from './js/event/eventConverter';
 
 export default {
     name: 'ne-panel',
-    mixins: [eventConverter],
     props: {
         init: {
             type: Object,
@@ -165,7 +164,7 @@ export default {
          * @param event 鼠标事件
          */
         onMouseMove (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             that.panelInfo.mouse.realX = that.formatScale(that.mainPanel.x + event.offsetX);
             that.panelInfo.mouse.realY = that.formatScale(that.mainPanel.y + event.offsetY);
@@ -178,7 +177,7 @@ export default {
          * @param event 鼠标事件
          */
         onHandleScroll (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let scale = that.mainPanel.scale; // 原始缩放倍数
             if ((scale.value === scale.minValue && event.deltaY > 0)
@@ -201,7 +200,7 @@ export default {
          * @param event 鼠标事件
          */
         onLeftMouseDown (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let realX = that.formatScale(that.mainPanel.x + event.offsetX);
@@ -298,7 +297,7 @@ export default {
          * @param event 鼠标事件
          */
         onMoveNode (index, event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let node = that.panelInfo.content.nodeList[index];
@@ -306,7 +305,7 @@ export default {
             let yBefore = event.clientY;
             panel.style.cursor = 'pointer';
             panel.onmousemove = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 node.x += (subEvent.clientX - xBefore) / that.mainPanel.scale.value;
                 node.y += (subEvent.clientY - yBefore) / that.mainPanel.scale.value;
                 xBefore = subEvent.clientX;
@@ -314,7 +313,7 @@ export default {
             };
             panel.onmouseleave = resetFunc;
             panel.onmouseup = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 resetFunc();
                 if (event.clientX === xBefore && event.clientY === yBefore) {
                     that.onLeftClick(subEvent, node);
@@ -333,14 +332,14 @@ export default {
          * @param event 鼠标事件
          */
         onRightMouseDown (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let xBefore = event.clientX;
             let yBefore = event.clientY;
             panel.style.cursor = 'move';
             panel.onmousemove = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 that.mainPanel.x -= subEvent.clientX - xBefore;
                 that.mainPanel.y -= subEvent.clientY - yBefore;
                 xBefore = subEvent.clientX;
@@ -348,7 +347,7 @@ export default {
             };
             panel.onmouseleave = resetFunc;
             panel.onmouseup = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 resetFunc();
                 if (event.clientX === xBefore && event.clientY === yBefore) {
                     that.onRightClick(subEvent);
@@ -368,7 +367,7 @@ export default {
          * @param node 被点击的的节点（当点击的不是节点时为null）
          */
         onLeftClick (event, node) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             console.log(event.offset);
             console.log('left click on ' + (node ? 'node' : 'panel'));
         },
