@@ -79,6 +79,9 @@
                       :d="formatConnection(connection.range, connection.isOutput)"></path>
             </g>
         </svg>
+        <div ref="ne-panel-reset" :class="{'ne-panel-reset':true, 'show':!isInitialState()}" @click="resetScale()">
+            <ne-comp-svg type="reset" :width="20" :height="20"></ne-comp-svg>
+        </div>
         <div ref="ne-panel-info" :class="{'ne-panel-info':true, 'show':panelInfo.show}">
             <p>缩放：{{ Math.ceil(mainPanel.scale.value * 100) }}%</p>
             <p>坐标：({{ panelInfo.mouse.realX.toFixed(1) }}, {{ panelInfo.mouse.realY.toFixed(1) }})</p>
@@ -88,11 +91,11 @@
 </template>
 
 <script>
+import neCompSvg from './components/ne-comp-svg';
 import eventConverter from './js/event/eventConverter';
 
 export default {
     name: 'ne-panel',
-    mixins: [eventConverter],
     props: {
         init: {
             type: Object,
@@ -100,6 +103,9 @@ export default {
             nodeList: [],
             connection: []
         }
+    },
+    components: {
+        neCompSvg
     },
     data () {
         return {
@@ -158,7 +164,7 @@ export default {
          * @param event 鼠标事件
          */
         onMouseMove (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             that.panelInfo.mouse.realX = that.formatScale(that.mainPanel.x + event.offsetX);
             that.panelInfo.mouse.realY = that.formatScale(that.mainPanel.y + event.offsetY);
@@ -171,7 +177,7 @@ export default {
          * @param event 鼠标事件
          */
         onHandleScroll (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let scale = that.mainPanel.scale; // 原始缩放倍数
             if ((scale.value === scale.minValue && event.deltaY > 0)
@@ -194,7 +200,7 @@ export default {
          * @param event 鼠标事件
          */
         onLeftMouseDown (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let realX = that.formatScale(that.mainPanel.x + event.offsetX);
@@ -291,7 +297,7 @@ export default {
          * @param event 鼠标事件
          */
         onMoveNode (index, event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let node = that.panelInfo.content.nodeList[index];
@@ -299,7 +305,7 @@ export default {
             let yBefore = event.clientY;
             panel.style.cursor = 'pointer';
             panel.onmousemove = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 node.x += (subEvent.clientX - xBefore) / that.mainPanel.scale.value;
                 node.y += (subEvent.clientY - yBefore) / that.mainPanel.scale.value;
                 xBefore = subEvent.clientX;
@@ -307,7 +313,7 @@ export default {
             };
             panel.onmouseleave = resetFunc;
             panel.onmouseup = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 resetFunc();
                 if (event.clientX === xBefore && event.clientY === yBefore) {
                     that.onLeftClick(subEvent, node);
@@ -326,14 +332,14 @@ export default {
          * @param event 鼠标事件
          */
         onRightMouseDown (event) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             let that = this;
             let panel = this.$refs['ne-panel'];
             let xBefore = event.clientX;
             let yBefore = event.clientY;
-            panel.style.cursor = 'pointer';
+            panel.style.cursor = 'move';
             panel.onmousemove = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 that.mainPanel.x -= subEvent.clientX - xBefore;
                 that.mainPanel.y -= subEvent.clientY - yBefore;
                 xBefore = subEvent.clientX;
@@ -341,7 +347,7 @@ export default {
             };
             panel.onmouseleave = resetFunc;
             panel.onmouseup = function (subEvent) {
-                subEvent = that.fixEvent(subEvent);
+                subEvent = eventConverter.fixEvent(subEvent);
                 resetFunc();
                 if (event.clientX === xBefore && event.clientY === yBefore) {
                     that.onRightClick(subEvent);
@@ -361,7 +367,7 @@ export default {
          * @param node 被点击的的节点（当点击的不是节点时为null）
          */
         onLeftClick (event, node) {
-            event = this.fixEvent(event);
+            event = eventConverter.fixEvent(event);
             console.log(event.offset);
             console.log('left click on ' + (node ? 'node' : 'panel'));
         },
@@ -479,6 +485,24 @@ export default {
             let mixArray = ['M', pathPointNew.p0.x, pathPointNew.p0.y,
                 'C', x2, pathPointNew.p0.y, x3, pathPointNew.p1.y, pathPointNew.p1.x, pathPointNew.p1.y];
             return mixArray.join(' ');
+        },
+        /**
+         * 判断视图是否处于初始状态
+         *
+         * @returns {Boolean} 视图是否处于初始状态
+         */
+        isInitialState() {
+            return this.mainPanel.scale.value === 1
+                && this.mainPanel.x === this.mainPanel.width / -2
+                && this.mainPanel.y === this.mainPanel.height / -2;
+        },
+        /**
+         * 重置缩放倍率
+         */
+        resetScale () {
+            this.mainPanel.scale.value = 1;
+            this.mainPanel.x = this.mainPanel.width / -2;
+            this.mainPanel.y = this.mainPanel.height / -2;
         }
     },
     mounted () {
@@ -534,6 +558,11 @@ export default {
                 stroke: black;
                 stroke-width: 1.5;
                 stroke-linecap: round;
+                cursor: pointer;
+
+                &:hover {
+                    stroke: gray;
+                }
             }
         }
 
@@ -552,6 +581,26 @@ export default {
         }
     }
 
+    .ne-panel-reset {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        padding: 10px;
+        background-color: $tips-background;
+        fill: #fff;
+        opacity: 0;
+        transition: all .3s ease-in-out;
+        cursor: pointer;
+
+        &[class*=show] {
+            opacity: 1;
+        }
+    }
+
     .ne-panel-info {
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -563,7 +612,7 @@ export default {
         padding: 10px;
         color: #fff;
         font-size: 12px;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: $tips-background;
         opacity: 0;
         transition: all .3s ease-in-out;
 
