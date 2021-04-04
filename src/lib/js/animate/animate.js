@@ -26,7 +26,7 @@ export default {
             // 每13毫秒执行一帧
             that.animateTimer = setInterval(() => {
                 let realTime = new Date();
-                for (let i = 0; i < that.animateList.length; i++) {
+                for (let i = that.animateList.length - 1; i >= 0; i--) {
                     let item = that.animateList[i];
                     let progress = (realTime - item.startTime) / speed;
                     if (progress < 0 || progress > 1) {
