@@ -93,6 +93,7 @@
 <script>
 import neCompSvg from './components/ne-comp-svg';
 import eventConverter from './js/event/eventConverter';
+import animate from './js/animate/animate';
 
 export default {
     name: 'ne-panel',
@@ -500,9 +501,18 @@ export default {
          * 重置缩放倍率
          */
         resetScale () {
-            this.mainPanel.scale.value = 1;
-            this.mainPanel.x = this.mainPanel.width / -2;
-            this.mainPanel.y = this.mainPanel.height / -2;
+            let that = this;
+            let speed = 300;
+            let type = 'easyInEasyOut';
+            animate.execute(this.mainPanel.scale.value, 1, speed, (value) => {
+                that.mainPanel.scale.value = value;
+            }, type);
+            animate.execute(this.mainPanel.x, that.mainPanel.width / -2, speed, (value) => {
+                that.mainPanel.x = value;
+            }, type);
+            animate.execute(this.mainPanel.y, that.mainPanel.height / -2, speed, (value) => {
+                that.mainPanel.y = value;
+            }, type);
         }
     },
     mounted () {

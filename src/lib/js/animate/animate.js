@@ -1,18 +1,16 @@
 export default {
     name: 'animate',
-    data() {
-        return {
-            animateList: [],
-            animateTimer: null
-        }
-    },
+    animateList: [],
+    animateTimer: null,
     /**
+     * 执行动画
      *
-     * @param {Number} startValue
-     * @param {Number} endValue
-     * @param {Number} speed
-     * @param {Function} callback
-     * @param {String} type
+     * @param {Number} startValue 起始值
+     * @param {Number} endValue 结束值
+     * @param {Number} speed 持续时间
+     * @param {Function} callback 回调函数，用于用户自定义更新变量的值
+     * @param {String} type 动画执行方式
+     * @returns {VoidFunction}
      */
     execute(startValue, endValue, speed, callback, type='liner') {
         let that = this;
@@ -26,15 +24,21 @@ export default {
         });
         if (that.animateTimer == null) {
             // 每13毫秒执行一帧
-            that.animateTimer = that.setInterval(() => {
+            that.animateTimer = setInterval(() => {
                 let realTime = new Date();
                 for (let i = 0; i < that.animateList.length; i++) {
                     let item = that.animateList[i];
-                    let progress = speed / (realTime - item.startTime);
+                    let progress = (realTime - item.startTime) / speed;
                     if (progress < 0 || progress > 1) {
-                        that.animateList.splice(i, 0);
+                        item.callback(item.endValue);
+                        that.animateList.splice(i, 1);
+                        continue;
                     }
                     doAnimate(item.startValue, item.endValue, progress, item.callback, item.type);
+                }
+                if (that.animateList.length === 0) {
+                    clearInterval(that.animateTimer);
+                    this.animateTimer = null;
                 }
             }, 13);
         }
