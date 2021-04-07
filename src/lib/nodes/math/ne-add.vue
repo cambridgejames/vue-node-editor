@@ -22,10 +22,18 @@
                         @mouseup.left.stop.prevent="onConnectionEnd('i' + index)"></circle>
             </g>
         </g>
+        <g ref="add-button-group" class="add-button-group">
+            <rect ref="add-button-background" class="add-button-background" x="1" :y="(mainPanel.value.length + 2) * 24"
+                  width="148" height="23"></rect>
+            <ne-comp-svg ref="add-button" class="add-button" type="add" x="68" :y="(mainPanel.value.length + 2) * 24 + 4"
+                         :width="14" :height="14" />
+        </g>
     </g>
 </template>
 
 <script>
+import neCompSvg from '../../components/ne-comp-svg';
+
 export default {
     name: 'ne-add',
     props: {
@@ -54,6 +62,9 @@ export default {
             default: false,
             required: true
         }
+    },
+    components: {
+        neCompSvg
     },
     watch: {
         value (newVal) {
@@ -118,7 +129,7 @@ export default {
         }
     },
     mounted () {
-        this.mainPanel.height = this.mainPanel.value.length * 24 + 48;
+        this.mainPanel.height = (this.mainPanel.value.length + 3) * 24;
     }
 };
 </script>
@@ -131,15 +142,37 @@ export default {
         fill: $math-node-background;
     }
 
-    .add-input-group {
-        .add-input-box {
-            .add-input-control {
-                width: 120px;
-                height: 24px;
-                margin-left: 15px;
-                line-height: 24px;
-                outline: none;
-                border: none;
+    .add-button-group {
+        cursor: pointer;
+
+        .add-button-background {
+            fill: white;
+            opacity: 0;
+            -webkit-transition: opacity .1s;
+            -moz-transition: opacity .1s;
+            -o-transition: opacity .1s;
+            transition: opacity .1s;
+        }
+
+        .add-button {
+            -webkit-transition: transform .3s, fill .1s;
+            -moz-transition: transform .3s, fill .1s;
+            -o-transition: transform .3s, fill .1s;
+            transition: transform .3s, fill .1s;
+        }
+
+        &:hover {
+            .add-button-background {
+                opacity: 0.3;
+            }
+
+            .add-button {
+                fill: white;
+                -webkit-transform: rotate(7deg);
+                -moz-transform: rotate(7deg);
+                -ms-transform: rotate(7deg);
+                -o-transform: rotate(7deg);
+                transform: rotate(7deg);
             }
         }
     }
