@@ -2,7 +2,7 @@
     <g ref="ne-add" class="ne-node ne-add" :transform="'translate(' + mainPanel.x + ',' + mainPanel.y + ')'">
         <rect ref="add-main-container"
               :class="{'main-container':true, 'add-main-container':true, 'selected':mainPanel.selected}"
-              x="0" y="0" :width="mainPanel.width" :height="mainPanel.height"/>
+              x="0" y="0" :width="mainPanel.width" :height="(mainPanel.value.length + 3) * 24"/>
         <g ref="add-title-group" class="title-group"
            @mousedown.left.stop="onLeftMouseDown">
             <rect ref="add-title-back" class="title-back" x="0" y="0" :width="mainPanel.width"/>
@@ -18,7 +18,9 @@
             <g class="add-input-box" v-for="(item, index) in mainPanel.value" :key="index">
                 <rect ref="add-input-background" class="add-input-background" x="1" :y="index * 24" width="148"
                       height="24"/>
-                <text ref="add-input-text" class="input-text" x="20" :y="16 + index * 24">{{ item }}</text>
+                <text ref="add-input-text" class="input-text" x="20" :y="16 + index * 24">
+                    {{ '加数' + (index + 1) }}
+                </text>
                 <circle ref="input-point" class="input-point" cx="10" :cy="12 + index * 24" r="4" :n-id="'i' + index"
                         @mousedown.left.stop.prevent="onConnectionStart('i' + index)"
                         @mouseup.left.stop.prevent="onConnectionEnd('i' + index)"/>
@@ -30,7 +32,7 @@
                 </g>
             </g>
         </g>
-        <g ref="add-button-group" class="add-button-group">
+        <g ref="add-button-group" class="add-button-group" @click="addInputNode()">
             <rect ref="add-button-background" class="add-button-background" x="1" :y="(mainPanel.value.length + 2) * 24"
                   width="148" height="23"/>
             <ne-comp-svg ref="add-button" class="add-button" type="add" x="68"
@@ -135,6 +137,12 @@ export default {
         },
         formatScale (number) {
             return number / this.mainPanel.scale;
+        },
+        /**
+         * 添加输入节点
+         */
+        addInputNode () {
+            this.mainPanel.value.push('加数');
         }
     },
     mounted () {
