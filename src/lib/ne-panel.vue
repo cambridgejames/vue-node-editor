@@ -55,7 +55,8 @@
                             :ref="'node-group-item-' + item.nId"
                             @movenode.stop="(event) => onMoveNode(index, event)"
                             @connectionstart="onConnectionStart"
-                            @connectionend="onConnectionEnd"></ne-add>
+                            @connectionend="onConnectionEnd"
+                            @removeinputnode="onRemoveInputNode"></ne-add>
                     <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
                                :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
                                :ref="'node-group-item-' + item.nId"
@@ -292,6 +293,19 @@ export default {
             that.connection.show = false;
         },
         /**
+         * 删除以pointNId所指定的输入节点为结束点的连接线
+         *
+         * @param {String} pointNId 指定输入节点的NId
+         * @returns {void}
+         */
+        onRemoveInputNode(pointNId) {
+            let pathIndex = this.getPathIndexByPointNId(pointNId);
+            // 如果连接线存在，则index大于或等于0，否则index为-1
+            if (pathIndex >= 0) {
+                this.panelInfo.content.connection.splice(pathIndex, 1);
+            }
+        },
+        /**
          * 移动节点事件
          *
          * @param index 节点序号
@@ -412,6 +426,12 @@ export default {
                 that.panelInfo.show = false;
             }, that.panelInfo.delay);
         },
+        /**
+         * 根据节点的全局唯一NID计算节点的坐标
+         *
+         * @param {String|Object} pointNId 节点的呃全局唯一NID
+         * @returns {{x: Number, y: Number}} 节点的中心坐标
+         */
         getPointPositionByNId (pointNId) {
             let that = this;
             if (typeof pointNId === 'string') {
@@ -469,8 +489,10 @@ export default {
         /**
          * 根据坐标和起始点信息绘制节点间的联结三次贝塞尔曲线
          *
-         * @param pathPoint 起始点和终点坐标及控制点位置设置
-         * @param isStartOutput 线型（起始点是否是输出点）
+         * @param {Object} pathPoint 起始点和终点坐标及控制点位置设置
+         * @param {String|Object} pathPoint.p0 起始点全局唯一NId
+         * @param {String|Object} pathPoint.p1 终止点全局唯一NId
+         * @param {Boolean} isStartOutput 线型（起始点是否是输出点）
          * @returns {string} 三次贝塞尔曲线的path路径
          */
         formatConnection (pathPoint, isStartOutput) {

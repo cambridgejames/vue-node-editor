@@ -16,8 +16,8 @@ export default {
           {nId:'1', name: 'ne-text', x: -350, y: -150, value: '节点1'},
           {nId:'2', name: 'ne-text', x: -400, y: 0, value: '节点2'},
           {nId:'3', name: 'ne-text', x: -200, y: 100, value: '节点3'},
-          {nId:'4', name: 'ne-add', x: -150, y: -100, value: ['加数1', '加数2']},
-          {nId:'5', name: 'ne-add', x: 50, y: 0, value: ['加数1', '加数2', '加数3']},
+          {nId:'4', name: 'ne-add', x: -150, y: -100, value: [0, 1]},
+          {nId:'5', name: 'ne-add', x: 50, y: 0, value: [0, 1, 2]},
           {nId:'6', name: 'ne-output', x: 0, y: -200, value: 'StringA'},
           {nId:'7', name: 'ne-output', x: 200, y: -150, value: 'StringB'},
           {nId:'8', name: 'ne-output', x: 250, y: -50, value: 'StringC'}
