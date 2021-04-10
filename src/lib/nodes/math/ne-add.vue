@@ -2,31 +2,40 @@
     <g ref="ne-add" class="ne-node ne-add" :transform="'translate(' + mainPanel.x + ',' + mainPanel.y + ')'">
         <rect ref="add-main-container"
               :class="{'main-container':true, 'add-main-container':true, 'selected':mainPanel.selected}"
-              x="0" y="0" :width="mainPanel.width" :height="mainPanel.height"></rect>
+              x="0" y="0" :width="mainPanel.width" :height="mainPanel.height"/>
         <g ref="add-title-group" class="title-group"
            @mousedown.left.stop="onLeftMouseDown">
-            <rect ref="add-title-back" class="title-back" x="0" y="0" :width="mainPanel.width"></rect>
+            <rect ref="add-title-back" class="title-back" x="0" y="0" :width="mainPanel.width"/>
             <text ref="add-title-text" class="title-text" :x="mainPanel.width / 2" y="16">加</text>
         </g>
         <g ref="add-output-group" class="output-group">
             <text ref="add-output-text" class="output-text" :x="mainPanel.width - 20" y="16">值</text>
             <circle ref="output-point" class="output-point" :cx="mainPanel.width - 10" cy="12" r="4" n-id="o0"
                     @mousedown.left.stop.prevent="onConnectionStart('o0')"
-                    @mouseup.left.stop.prevent="onConnectionEnd('o0')"></circle>
+                    @mouseup.left.stop.prevent="onConnectionEnd('o0')"/>
         </g>
         <g ref="add-input-group" class="input-group add-input-group">
-            <g v-for="(item, index) in mainPanel.value" :key="index">
+            <g class="add-input-box" v-for="(item, index) in mainPanel.value" :key="index">
+                <rect ref="add-input-background" class="add-input-background" x="1" :y="index * 24" width="148"
+                      height="24"/>
                 <text ref="add-input-text" class="input-text" x="20" :y="16 + index * 24">{{ item }}</text>
                 <circle ref="input-point" class="input-point" cx="10" :cy="12 + index * 24" r="4" :n-id="'i' + index"
                         @mousedown.left.stop.prevent="onConnectionStart('i' + index)"
-                        @mouseup.left.stop.prevent="onConnectionEnd('i' + index)"></circle>
+                        @mouseup.left.stop.prevent="onConnectionEnd('i' + index)"/>
+                <g ref="minus-button-group" class="minus-button-group">
+                    <rect ref="minus-button-box" class="minus-button-box" x="131" :y="index * 24 + 5" width="14"
+                          height="14"/>
+                    <ne-comp-svg ref="minus-button" class="minus-button" type="minus" x="131" :y="index * 24 + 5"
+                                 :width="14" :height="14"/>
+                </g>
             </g>
         </g>
         <g ref="add-button-group" class="add-button-group">
             <rect ref="add-button-background" class="add-button-background" x="1" :y="(mainPanel.value.length + 2) * 24"
-                  width="148" height="23"></rect>
-            <ne-comp-svg ref="add-button" class="add-button" type="add" x="68" :y="(mainPanel.value.length + 2) * 24 + 4"
-                         :width="14" :height="14" />
+                  width="148" height="23"/>
+            <ne-comp-svg ref="add-button" class="add-button" type="add" x="68"
+                         :y="(mainPanel.value.length + 2) * 24 + 4"
+                         :width="14" :height="14"/>
         </g>
     </g>
 </template>
@@ -142,23 +151,43 @@ export default {
         fill: $math-node-background;
     }
 
+    .add-input-box {
+        .add-input-background {
+            fill: white;
+            opacity: 0;
+        }
+
+        .minus-button-group {
+            cursor: pointer;
+
+            .minus-button-box {
+                opacity: 0;
+            }
+
+            &:hover {
+                .minus-button {
+                    fill: white;
+                }
+            }
+        }
+
+        &:hover {
+            .add-input-background {
+                opacity: 0.3;
+            }
+        }
+    }
+
     .add-button-group {
         cursor: pointer;
 
         .add-button-background {
             fill: white;
             opacity: 0;
-            -webkit-transition: opacity .1s;
-            -moz-transition: opacity .1s;
-            -o-transition: opacity .1s;
-            transition: opacity .1s;
         }
 
         .add-button {
-            -webkit-transition: transform .3s, fill .1s;
-            -moz-transition: transform .3s, fill .1s;
-            -o-transition: transform .3s, fill .1s;
-            transition: transform .3s, fill .1s;
+            display: inline-block;
         }
 
         &:hover {
@@ -168,11 +197,6 @@ export default {
 
             .add-button {
                 fill: white;
-                -webkit-transform: rotate(7deg);
-                -moz-transform: rotate(7deg);
-                -ms-transform: rotate(7deg);
-                -o-transform: rotate(7deg);
-                transform: rotate(7deg);
             }
         }
     }
