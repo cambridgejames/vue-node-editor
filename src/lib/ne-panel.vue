@@ -95,6 +95,7 @@
 import neCompSvg from './components/ne-comp-svg';
 import eventConverter from './js/event/eventConverter';
 import animate from './js/animate/animate';
+import AovTopo from './js/topo/aovTopo';
 
 export default {
     name: 'ne-panel',
@@ -158,6 +159,19 @@ export default {
                 minOffset: 50
             }
         };
+    },
+    computed: {
+        panelInfoContent () {
+            return this.panelInfo.content;
+        }
+    },
+    watch: {
+        panelInfoContent: {
+            handler (newValue) {
+                this.refreshTopoValue(newValue);
+            },
+            deep: true
+        }
     },
     methods: {
         /**
@@ -298,7 +312,7 @@ export default {
          * @param {String} pointNId 指定输入节点的NId
          * @returns {void}
          */
-        onRemoveInputNode(pointNId) {
+        onRemoveInputNode (pointNId) {
             let pathIndex = this.getPathIndexByPointNId(pointNId);
             // 如果连接线存在，则index大于或等于0，否则index为-1
             if (pathIndex >= 0) {
@@ -514,7 +528,7 @@ export default {
          *
          * @returns {Boolean} 视图是否处于初始状态
          */
-        isInitialState() {
+        isInitialState () {
             return this.mainPanel.scale.value === 1
                 && this.mainPanel.x === this.mainPanel.width / -2
                 && this.mainPanel.y === this.mainPanel.height / -2;
@@ -535,6 +549,13 @@ export default {
             animate.execute(this.mainPanel.y, that.mainPanel.height / -2, speed, (value) => {
                 that.mainPanel.y = value;
             }, type);
+        },
+        /**
+         * 重新计算输出结果，通过 changetopovalue 事件返回给父组件
+         */
+        refreshTopoValue (newTopo) {
+            let topoValue = AovTopo.getValue(newTopo);
+            this.$emit('changetopovalue', topoValue);
         }
     },
     mounted () {
