@@ -44,25 +44,34 @@
             <!--节点-->
             <g ref="node-group">
                 <g v-for="(item, index) in panelInfo.content.nodeList" :key="index">
-                    <ne-text v-if="item.name === 'ne-text'" :n-id="item.nId" :x="item.x" :y="item.y"
-                             :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                             :ref="'node-group-item-' + item.nId"
-                             @movenode.stop="(event) => onMoveNode(index, event)"
-                             @connectionstart="onConnectionStart"
-                             @connectionend="onConnectionEnd"></ne-text>
-                    <ne-add v-else-if="item.name === 'ne-add'" :n-id="item.nId" :x="item.x" :y="item.y"
-                            :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                            :ref="'node-group-item-' + item.nId"
-                            @movenode.stop="(event) => onMoveNode(index, event)"
-                            @connectionstart="onConnectionStart"
-                            @connectionend="onConnectionEnd"
-                            @removeinputnode="onRemoveInputNode"></ne-add>
-                    <ne-output v-else-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
-                               :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
-                               :ref="'node-group-item-' + item.nId"
-                               @movenode.stop="(event) => onMoveNode(index, event)"
-                               @connectionstart="onConnectionStart"
-                               @connectionend="onConnectionEnd"></ne-output>
+                    <!-- 输入节点 -->
+                    <g v-if="item.ref === NeNodeRef.NE_INPUT_NODE">
+                        <ne-text v-if="item.name === 'ne-text'" :n-id="item.nId" :x="item.x" :y="item.y"
+                                 :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                                 :ref="'node-group-item-' + item.nId"
+                                 @movenode.stop="(event) => onMoveNode(index, event)"
+                                 @connectionstart="onConnectionStart"
+                                 @connectionend="onConnectionEnd"></ne-text>
+                    </g>
+                    <!-- 处理节点 -->
+                    <g v-else-if="item.ref === NeNodeRef.NE_HANDLE_NODE">
+                        <ne-add v-if="item.name === 'ne-add'" :n-id="item.nId" :x="item.x" :y="item.y"
+                                :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                                :ref="'node-group-item-' + item.nId"
+                                @movenode.stop="(event) => onMoveNode(index, event)"
+                                @connectionstart="onConnectionStart"
+                                @connectionend="onConnectionEnd"
+                                @removeinputnode="onRemoveInputNode"></ne-add>
+                    </g>
+                    <!-- 输出节点 -->
+                    <g v-else-if="item.ref === NeNodeRef.NE_OUTPUT_NODE">
+                        <ne-output v-if="item.name === 'ne-output'" :n-id="item.nId" :x="item.x" :y="item.y"
+                                   :value="item.value" :scale="mainPanel.scale.value" :selected="item.selected"
+                                   :ref="'node-group-item-' + item.nId"
+                                   @movenode.stop="(event) => onMoveNode(index, event)"
+                                   @connectionstart="onConnectionStart"
+                                   @connectionend="onConnectionEnd"></ne-output>
+                    </g>
                 </g>
             </g>
             <!--节点间连线-->
@@ -93,6 +102,9 @@
 
 <script>
 import neCompSvg from './components/ne-comp-svg';
+
+import * as NeNodeRefConstant from './js/constant/neNodeRefConstant';
+
 import eventConverter from './js/event/eventConverter';
 import animate from './js/animate/animate';
 import AovTopo from './js/topo/aovTopo';
@@ -112,6 +124,7 @@ export default {
     },
     data () {
         return {
+            NeNodeRef: NeNodeRefConstant,
             mainPanel: {
                 x: 0,
                 y: 0,
@@ -566,12 +579,15 @@ export default {
         that.mainPanel.height = container.offsetHeight;
         that.mainPanel.x = -container.offsetWidth / 2;
         that.mainPanel.y = -container.offsetHeight / 2;
-        console.warn(`Init ne-panel: [${that.mainPanel.x}, ${that.mainPanel.y}, ${that.mainPanel.width}, ${that.mainPanel.height}]`);
         window.onresize = that.onResize;
         that.panelInfo.content.nodeList = that.init.nodeList ? that.init.nodeList : [];
         that.$nextTick(function () {
             // 在初始化节点DOM完成后再创建连线
             that.panelInfo.content.connection = that.init.connection ? that.init.connection : [];
+        });
+        that.$nextTick(function () {
+            // 视图全部初始化结束后执行
+            console.warn(`Init ne-panel: [${that.mainPanel.x}, ${that.mainPanel.y}, ${that.mainPanel.width}, ${that.mainPanel.height}]`);
         });
     }
 };
