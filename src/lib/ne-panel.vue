@@ -107,7 +107,8 @@ import * as NeNodeRefConstant from './js/constant/neNodeRefConstant';
 
 import eventConverter from './js/event/eventConverter';
 import animate from './js/animate/animate';
-import AovTopo from './js/topo/aovTopo';
+import * as AovTopo from './js/topo/aovTopo';
+import * as Clone from './js/topo/clone';
 
 export default {
     name: 'ne-panel',
@@ -580,10 +581,10 @@ export default {
         that.mainPanel.x = -container.offsetWidth / 2;
         that.mainPanel.y = -container.offsetHeight / 2;
         window.onresize = that.onResize;
-        that.panelInfo.content.nodeList = that.init.nodeList ? that.init.nodeList : [];
+        that.panelInfo.content.nodeList = Clone.deepClone(that.init.nodeList ? that.init.nodeList : []);
         that.$nextTick(function () {
             // 在初始化节点DOM完成后再创建连线
-            that.panelInfo.content.connection = that.init.connection ? that.init.connection : [];
+            that.panelInfo.content.connection = Clone.deepClone(that.init.connection ? that.init.connection : []);
         });
         that.$nextTick(function () {
             // 视图全部初始化结束后执行
