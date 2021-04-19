@@ -572,7 +572,6 @@ export default {
             if (!this.panelInfo.ready) {
                 return;
             }
-            console.log('topo');
             let topoValue = AovTopo.getTopologicalOrder(newTopo);
             this.$emit('changetopovalue', topoValue);
         }
