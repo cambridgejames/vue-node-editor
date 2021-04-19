@@ -16,19 +16,20 @@
         </g>
         <g ref="add-input-group" class="input-group add-input-group">
             <g class="add-input-box" v-for="(item, index) in mainPanel.value" :key="index">
-                <rect ref="add-input-background" class="add-input-background" x="1" :y="index * 24" width="148"
-                      height="24"/>
-                <text ref="add-input-text" class="input-text" x="20" :y="16 + index * 24">
-                    {{ '加数' + (index + 1)}}
+                <rect :ref="'add-input-background' + index" class="add-input-background" x="1" :y="index * 24"
+                      width="148" height="24"/>
+                <text :ref="'add-input-text' + index" class="input-text" x="20" :y="16 + index * 24">
+                    {{ '加数' + (index + 1) }}
                 </text>
-                <circle ref="input-point" class="input-point" cx="10" :cy="12 + index * 24" r="4" :n-id="'i' + index"
+                <circle :ref="'input-point' + index" class="input-point" cx="10" :cy="12 + index * 24" r="4"
+                        :n-id="'i' + index"
                         @mousedown.left.stop.prevent="onConnectionStart('i' + item)"
                         @mouseup.left.stop.prevent="onConnectionEnd('i' + item)"/>
-                <g ref="minus-button-group" class="minus-button-group" @click="removeInputNode('i' + item)">
-                    <rect ref="minus-button-box" class="minus-button-box" x="131" :y="index * 24 + 5" width="14"
-                          height="14"/>
-                    <ne-comp-svg ref="minus-button" class="minus-button" type="minus" x="131" :y="index * 24 + 5"
-                                 :width="14" :height="14"/>
+                <g :ref="'minus-button-group' + index" class="minus-button-group" @click="removeInputNode('i' + item)">
+                    <rect :ref="'minus-button-box' + index" class="minus-button-box" x="131" :y="index * 24 + 5"
+                          width="14" height="14"/>
+                    <ne-comp-svg :ref="'minus-button' + index" class="minus-button" type="minus" x="131"
+                                 :y="index * 24 + 5" :width="14" :height="14"/>
                 </g>
             </g>
         </g>
@@ -36,8 +37,7 @@
             <rect ref="add-button-background" class="add-button-background" x="1" :y="(mainPanel.value.length + 2) * 24"
                   width="148" height="23"/>
             <ne-comp-svg ref="add-button" class="add-button" type="add" x="68"
-                         :y="(mainPanel.value.length + 2) * 24 + 4"
-                         :width="14" :height="14"/>
+                         :y="(mainPanel.value.length + 2) * 24 + 4" :width="14" :height="14"/>
         </g>
     </g>
 </template>
@@ -162,7 +162,7 @@ export default {
          * @param {String} pointNId 输入节点的NID
          * @returns {void}
          */
-        removeInputNode(pointNId) {
+        removeInputNode (pointNId) {
             if (pointNId.charAt(0) !== 'i') {
                 return;
             }
@@ -179,7 +179,7 @@ export default {
          * @param {String} pointNId 输入/输出节点的NID
          * @returns {String} 画布全局唯一NID
          */
-        getFullPointNID(pointNId) {
+        getFullPointNID (pointNId) {
             return this.nId + '#' + pointNId;
         }
     },
