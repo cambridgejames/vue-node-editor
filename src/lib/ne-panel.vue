@@ -139,6 +139,7 @@ export default {
                 }
             },
             panelInfo: {
+                ready: false,
                 show: false,
                 delay: 1000,
                 timer: null,
@@ -568,7 +569,11 @@ export default {
          * 重新计算输出结果，通过 changetopovalue 事件返回给父组件
          */
         refreshTopoValue (newTopo) {
-            let topoValue = AovTopo.getValue(newTopo);
+            if (!this.panelInfo.ready) {
+                return;
+            }
+            console.log('topo');
+            let topoValue = AovTopo.getTopologicalOrder(newTopo);
             this.$emit('changetopovalue', topoValue);
         }
     },
@@ -589,6 +594,7 @@ export default {
         that.$nextTick(function () {
             // 视图全部初始化结束后执行
             console.warn(`Init ne-panel: [${that.mainPanel.x}, ${that.mainPanel.y}, ${that.mainPanel.width}, ${that.mainPanel.height}]`);
+            that.panelInfo.ready = true;
         });
     }
 };

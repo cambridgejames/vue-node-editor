@@ -3,22 +3,24 @@ import * as NeNodeRefConstant from '../constant/neNodeRefConstant';
 import * as Clone from './clone';
 
 /**
- * 根据传入的拓扑计算输出结果
+ * 根据传入的拓扑计算节点的拓扑排序
  *
- * @param {Object} topo 节点拓扑
- * @returns {[{String: Object}]} 计算结果
+ * @param {AovTopo} topo 节点拓扑
+ * @returns {Array.<{string: any}>} 计算结果
  */
-export function getValue (topo) {
+export function getTopologicalOrder (topo) {
     let newTopo = Clone.deepClone(topo);
-    const nodeList = newTopo.nodeList;
-    const outputNodeList = [];
-    for (let index in nodeList) {
-        let node = nodeList[index];
-        if (node.ref === NeNodeRefConstant.NE_OUTPUT_NODE) {
-            let outputData = {};
-            outputData[node.value] = {};
-            outputNodeList.push(outputData);
-        }
-    }
-    return outputNodeList;
+
+    return [{'a': 1}];
+}
+
+/**
+ * 判断指定的节点的入度是否为零
+ *
+ * @param {string} nodeNId 节点的NId
+ * @param {Array.<NeLink>} topoLink 节点间连线
+ * @returns {boolean} 是/否
+ */
+function checkIsRootNode (nodeNId, topoLink) {
+    return false;
 }
