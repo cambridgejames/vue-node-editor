@@ -21,3 +21,5 @@ export interface NeLink {
         p1: string;
     }
 }
+
+declare function getTopologicalOrder(topo: AovTopo): Array<string>|null;
