@@ -78,8 +78,8 @@ export default {
         };
     },
     methods: {
-        onChangeValue () {
-            this.$emit('value', this.input.value);
+        getValue(inputArg) {
+            return inputArg;
         },
         onLeftMouseDown (event) {
             this.$emit('movenode', event);

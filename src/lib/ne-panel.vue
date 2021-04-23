@@ -51,7 +51,8 @@
                                  :ref="'node-group-item-' + item.nId"
                                  @movenode.stop="(event) => onMoveNode(index, event)"
                                  @connectionstart="onConnectionStart"
-                                 @connectionend="onConnectionEnd"></ne-text>
+                                 @connectionend="onConnectionEnd"
+                                 @value="refreshTopoValue(panelInfo.content)"/>
                     </g>
                     <!-- 处理节点 -->
                     <g v-else-if="item.ref === NeNodeRef.NE_HANDLE_NODE">
@@ -61,7 +62,7 @@
                                 @movenode.stop="(event) => onMoveNode(index, event)"
                                 @connectionstart="onConnectionStart"
                                 @connectionend="onConnectionEnd"
-                                @removeinputnode="onRemoveInputNode"></ne-add>
+                                @removeinputnode="onRemoveInputNode"/>
                     </g>
                     <!-- 输出节点 -->
                     <g v-else-if="item.ref === NeNodeRef.NE_OUTPUT_NODE">
@@ -70,7 +71,7 @@
                                    :ref="'node-group-item-' + item.nId"
                                    @movenode.stop="(event) => onMoveNode(index, event)"
                                    @connectionstart="onConnectionStart"
-                                   @connectionend="onConnectionEnd"></ne-output>
+                                   @connectionend="onConnectionEnd"/>
                     </g>
                 </g>
             </g>
@@ -569,10 +570,12 @@ export default {
          * 重新计算输出结果，通过 changetopovalue 事件返回给父组件
          */
         refreshTopoValue (newTopo) {
-            if (!this.panelInfo.ready) {
+            if (!this.panelInfo.ready || !newTopo) {
                 return;
             }
+            console.log('refresh topo value');
             let topoValue = AovTopo.getTopologicalOrder(newTopo);
+
             this.$emit('changetopovalue', topoValue);
         }
     },

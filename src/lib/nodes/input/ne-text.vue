@@ -84,13 +84,24 @@ export default {
                 selected: this.selected
             },
             input: {
-                value: this.value
+                value: this.value,
+                timer: null,
+                delay: 500
             }
         };
     },
     methods: {
+        getValue() {
+            return this.input.value;
+        },
         onChangeValue () {
-            this.$emit('value', this.input.value);
+            let that = this;
+            if (that.input.timer !== null) {
+                clearTimeout(that.input.timer);
+            }
+            that.input.timer = setTimeout(function () {
+                that.$emit('value', that.input.value);
+            }, that.input.delay);
         },
         onLeftMouseDown (event) {
             this.$emit('movenode', event);
