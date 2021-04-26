@@ -150,6 +150,8 @@ export default {
                     realY: 0
                 },
                 content: {
+                    timer: null,
+                    delay: 500,
                     nodeList: [],
                     connection: []
                 }
@@ -179,7 +181,11 @@ export default {
     },
     computed: {
         panelInfoContent () {
-            return this.panelInfo.content;
+            let that = this;
+            return {
+                nodeList: that.panelInfo.content.nodeList,
+                connection: that.panelInfo.content.connection
+            };
         }
     },
     watch: {
@@ -571,22 +577,28 @@ export default {
          * 重新计算输出结果，通过 changetopovalue 事件返回给父组件
          */
         refreshTopoValue (newTopo) {
-            if (!this.panelInfo.ready || !newTopo) {
+            let that = this;
+            if (!that.panelInfo.ready || !newTopo) {
                 return;
             }
-            console.log('refresh topo value');
-            const topoSort = AovTopo.getTopologicalOrder(newTopo);
-            let solution = {};
-            for (let index = 0; index < topoSort.length; index++) {
-                let currentRef = 'node-group-item-' + topoSort[index];
-                // solution[currentRef] = this.$refs[currentRef][0].getValue();
-                let dependencies = Calculator.getDependency(topoSort[index], newTopo.connection);
-                for (let dependency in dependencies) {
-                    //
-                }
-                solution[currentRef] = dependencies;
+            if (that.panelInfo.content.timer !== null) {
+                clearTimeout(that.panelInfo.content.timer);
             }
-            this.$emit('changetopovalue', solution);
+            that.panelInfo.content.timer = setTimeout(function () {
+                console.log('refresh topo value');
+                const topoSort = AovTopo.getTopologicalOrder(newTopo);
+                let solution = {};
+                for (let index = 0; index < topoSort.length; index++) {
+                    let currentRef = 'node-group-item-' + topoSort[index];
+                    // solution[currentRef] = this.$refs[currentRef][0].getValue();
+                    let dependencies = Calculator.getDependency(topoSort[index], newTopo.connection);
+                    for (let dependency in dependencies) {
+                        //
+                    }
+                    solution[currentRef] = dependencies;
+                }
+                that.$emit('changetopovalue', solution);
+            }, that.panelInfo.content.delay);
         }
     },
     mounted () {
