@@ -110,6 +110,7 @@ import eventConverter from './js/event/eventConverter';
 import animate from './js/animate/animate';
 import * as AovTopo from './js/topo/aovTopo';
 import * as Clone from './js/topo/clone';
+import * as Calculator from './js/topo/calculateHelper';
 
 export default {
     name: 'ne-panel',
@@ -574,9 +575,18 @@ export default {
                 return;
             }
             console.log('refresh topo value');
-            let topoValue = AovTopo.getTopologicalOrder(newTopo);
-
-            this.$emit('changetopovalue', topoValue);
+            const topoSort = AovTopo.getTopologicalOrder(newTopo);
+            let solution = {};
+            for (let index = 0; index < topoSort.length; index++) {
+                let currentRef = 'node-group-item-' + topoSort[index];
+                // solution[currentRef] = this.$refs[currentRef][0].getValue();
+                let dependencies = Calculator.getDependency(topoSort[index], newTopo.connection);
+                for (let dependency in dependencies) {
+                    //
+                }
+                solution[currentRef] = dependencies;
+            }
+            this.$emit('changetopovalue', solution);
         }
     },
     mounted () {

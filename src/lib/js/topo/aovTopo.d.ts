@@ -22,4 +22,4 @@ export interface NeLink {
     }
 }
 
-declare function getTopologicalOrder(topo: AovTopo): Array<string>|null;
+declare function getTopologicalOrder(topo: AovTopo): Array<string> | null;
