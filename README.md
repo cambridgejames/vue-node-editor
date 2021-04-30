@@ -48,6 +48,10 @@ vue-node-editor
     │   ├ components
     │   │   └ HelloWorld.vue - 用于演示组件而做的封装组件
     │   ├ lib
+    │   │   ├ components
+    │   │   │   └ 自定义组件
+    │   │   ├ js
+    │   │   │   └ JavaScript脚本目录
     │   │   ├ nodes
     │   │   │   └ 节点组件
     │   │   ├ scss
