@@ -587,21 +587,28 @@ export default {
             that.panelInfo.content.timer = setTimeout(function () {
                 console.info('refresh topo value');
                 const topoSort = AovTopo.getTopologicalOrder(newTopo);
-                let solution = {};
+                let nodeOutputList = {};
                 for (let index = 0; index < topoSort.length; index++) {
                     let currentRef = 'node-group-item-' + topoSort[index];
                     let dependencies = Calculator.getDependency(topoSort[index], newTopo.connection);
                     let parameter = {};
                     for (let dependencyIndex in dependencies) {
                         let nIds = dependencies[dependencyIndex].split('#');
-                        parameter[dependencyIndex] = solution[nIds[0]][nIds[1]];
+                        parameter[dependencyIndex] = nodeOutputList[nIds[0]][nIds[1]];
                     }
                     let currentSolution = that.$refs[currentRef][0].getValue(parameter);
                     if (typeof (currentSolution) !== 'object') {
                         console.error(`The return value type of node component '${currentRef}' is illegal.`);
                         break;
                     }
-                    solution[topoSort[index]] = currentSolution;
+                    nodeOutputList[topoSort[index]] = currentSolution;
+                }
+                let solution = [];
+                for (let index = 0; index < newTopo.nodeList.length; index++) {
+                    let currentNode = newTopo.nodeList[index];
+                    if (currentNode.ref === NeNodeRefConstant.NE_OUTPUT_NODE) {
+                        solution.push(nodeOutputList[currentNode.nId]);
+                    }
                 }
                 that.$emit('changetopovalue', solution);
             }, that.panelInfo.content.delay);
