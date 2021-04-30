@@ -73,4 +73,9 @@ vue-node-editor
 
 ## 版权说明
 
+项目地址：
+
+- GitHub [https://github.com/cambridgejames/vue-node-editor](https://github.com/cambridgejames/vue-node-editor)
+- 码云 [https://gitee.com/powerinv/vue-node-editor](https://gitee.com/powerinv/vue-node-editor)
+
 该项目签署了MIT授权许可，详情请参阅 LICENSE 文件
