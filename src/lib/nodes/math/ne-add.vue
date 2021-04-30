@@ -24,7 +24,8 @@
                 <circle :ref="'input-point' + index" class="input-point" cx="10" :cy="12 + index * 24" r="4"
                         @mousedown.left.stop.prevent="onConnectionStart('i' + item)"
                         @mouseup.left.stop.prevent="onConnectionEnd('i' + item)"/>
-                <g :ref="'minus-button-group' + index" class="minus-button-group" @click="removeInputNode('i' + item)">
+                <g :ref="'minus-button-group' + index" class="minus-button-group" v-if="mainPanel.value.length > 2"
+                   @click="removeInputNode('i' + item)">
                     <rect :ref="'minus-button-box' + index" class="minus-button-box" x="131" :y="index * 24 + 5"
                           width="14" height="14"/>
                     <ne-comp-svg :ref="'minus-button' + index" class="minus-button" type="minus" x="131"
