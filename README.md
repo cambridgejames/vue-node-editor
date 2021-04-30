@@ -8,6 +8,8 @@
 
 > 基于Vue.js的可视化节点编辑器组件
 
+![](./imgs/ne-panel.png)
+
 ## 安装
 
 ```$xslt
