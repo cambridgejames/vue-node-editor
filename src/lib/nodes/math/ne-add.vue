@@ -22,7 +22,6 @@
                     {{ '加数' + (index + 1) }}
                 </text>
                 <circle :ref="'input-point' + index" class="input-point" cx="10" :cy="12 + index * 24" r="4"
-                        :n-id="'i' + index"
                         @mousedown.left.stop.prevent="onConnectionStart('i' + item)"
                         @mouseup.left.stop.prevent="onConnectionEnd('i' + item)"/>
                 <g :ref="'minus-button-group' + index" class="minus-button-group" @click="removeInputNode('i' + item)">
@@ -108,8 +107,27 @@ export default {
         };
     },
     methods: {
-        getValue(...arg) {
-            console.log(arg);
+        getValue (parameter) {
+            let that = this;
+            let pointNIdIndexes = that.mainPanel.value;
+            let isNumber = false;
+            for (let index = 0; index < pointNIdIndexes.length; index++) {
+                let currentValue = parameter['i' + pointNIdIndexes[index]];
+                if (currentValue !== undefined && typeof (currentValue) !== 'string') {
+                    isNumber = true;
+                }
+            }
+            let solution = isNumber ? 0 : '';
+            for (let index = 0; index < pointNIdIndexes.length; index++) {
+                let currentValue = parameter['i' + pointNIdIndexes[index]];
+                if (typeof (currentValue) !== 'number' && typeof (currentValue) !== 'string') {
+                    continue;
+                }
+                solution += currentValue;
+            }
+            return {
+                o0: solution
+            };
         },
         onLeftMouseDown (event) {
             this.$emit('movenode', event);
