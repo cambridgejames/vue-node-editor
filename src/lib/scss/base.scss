@@ -7,75 +7,90 @@ $output-node-background: #ff4f81;
 
 $selected-node-border: #3369e7;
 
+$tips-background: rgba(0, 0, 0, 0.3);
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
 .ne-node {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 
-  .main-container {
-    stroke: black;
-    stroke-width: 1.5;
-
-    &[class*=selected] {
-      stroke: $selected-node-border;
-      stroke-width: 2;
-    }
-  }
-
-  .title-group {
-    .title-back {
-      height: 24px;
-      fill: rgba(black, 0.5);
-    }
-    .title-text {
-      font-size: 12px;
-      fill: white;
-      text-anchor: middle;
-    }
-  }
-
-  .output-group {
-    transform: translate(0, 24px);
-
-    .output-text {
-      font-size: 12px;
-      fill: black;
-      text-anchor: end;
-    }
-
-    .output-point {
-      fill: #003366;
-      stroke: #3369e7;
-      stroke-width: 1;
-
-      &:hover {
-        stroke: white;
+    .main-container {
+        stroke: black;
         stroke-width: 1.5;
-        cursor: pointer;
-      }
-    }
-  }
 
-  .input-group {
-    transform: translate(0, 48px);
-
-    .input-text {
-      font-size: 12px;
-      fill: black;
-      text-anchor: start;
+        &[class*=selected] {
+            stroke: $selected-node-border;
+            stroke-width: 2;
+        }
     }
 
-    .input-point {
-      fill: #003366;
-      stroke: #3369e7;
-      stroke-width: 1;
+    .title-group {
+        .title-back {
+            height: 24px;
+            fill: rgba(black, 0.5);
+        }
 
-      &:hover {
-        stroke: white;
-        stroke-width: 1.5;
-        cursor: pointer;
-      }
+        .title-text {
+            font-size: 12px;
+            fill: white;
+            text-anchor: middle;
+        }
     }
-  }
+
+    .output-group {
+        transform: translate(0, 24px);
+
+        .output-text {
+            font-size: 12px;
+            fill: black;
+            text-anchor: end;
+        }
+
+        .output-point {
+            fill: #003366;
+            stroke: #3369e7;
+            stroke-width: 1;
+
+            &:hover {
+                stroke: white;
+                stroke-width: 1.5;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .input-group {
+        transform: translate(0, 48px);
+
+        .input-text {
+            font-size: 12px;
+            fill: black;
+            text-anchor: start;
+        }
+
+        .input-point {
+            fill: #003366;
+            stroke: #3369e7;
+            stroke-width: 1;
+
+            &:hover {
+                stroke: white;
+                stroke-width: 1.5;
+                cursor: pointer;
+            }
+        }
+    }
+
+    &:hover {
+        .main-container {
+            stroke: grey;
+            stroke-width: 2;
+        }
+    }
 }
