@@ -90,7 +90,10 @@ export default {
     },
     methods: {
         getValue() {
-            return this.input.value;
+            let that = this;
+            return {
+                o0: that.input.value
+            };
         },
         onChangeValue () {
             this.$emit('value', this.input.value);

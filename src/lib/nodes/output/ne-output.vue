@@ -79,7 +79,9 @@ export default {
     },
     methods: {
         getValue(inputArg) {
-            return inputArg;
+            let solution = {};
+            solution[this.mainPanel.value] = inputArg['i0'];
+            return solution;
         },
         onLeftMouseDown (event) {
             this.$emit('movenode', event);

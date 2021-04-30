@@ -585,17 +585,30 @@ export default {
                 clearTimeout(that.panelInfo.content.timer);
             }
             that.panelInfo.content.timer = setTimeout(function () {
-                console.log('refresh topo value');
+                console.info('refresh topo value');
                 const topoSort = AovTopo.getTopologicalOrder(newTopo);
-                let solution = {};
+                let nodeOutputList = {};
                 for (let index = 0; index < topoSort.length; index++) {
                     let currentRef = 'node-group-item-' + topoSort[index];
-                    // solution[currentRef] = this.$refs[currentRef][0].getValue();
                     let dependencies = Calculator.getDependency(topoSort[index], newTopo.connection);
-                    for (let dependency in dependencies) {
-                        //
+                    let parameter = {};
+                    for (let dependencyIndex in dependencies) {
+                        let nIds = dependencies[dependencyIndex].split('#');
+                        parameter[dependencyIndex] = nodeOutputList[nIds[0]][nIds[1]];
                     }
-                    solution[currentRef] = dependencies;
+                    let currentSolution = that.$refs[currentRef][0].getValue(parameter);
+                    if (typeof (currentSolution) !== 'object') {
+                        console.error(`The return value type of node component '${currentRef}' is illegal.`);
+                        break;
+                    }
+                    nodeOutputList[topoSort[index]] = currentSolution;
+                }
+                let solution = [];
+                for (let index = 0; index < newTopo.nodeList.length; index++) {
+                    let currentNode = newTopo.nodeList[index];
+                    if (currentNode.ref === NeNodeRefConstant.NE_OUTPUT_NODE) {
+                        solution.push(nodeOutputList[currentNode.nId]);
+                    }
                 }
                 that.$emit('changetopovalue', solution);
             }, that.panelInfo.content.delay);
